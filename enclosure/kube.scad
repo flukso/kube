@@ -50,15 +50,17 @@ ring_t = 0.1;
 ring_inner_r = support_r + ring_t;
 ring_outer_r = ring_inner_r + 2;
 
-echo("scaling vector", kube_s);
-echo("magnet diameter", magnet_r*2);
-echo("flk width", flk_w);
-echo("kube width", outer_w);
-echo("support diameter", support_r*2);
-echo("support height", support_h);
-echo("ring height", ring_h);
-echo("ring inner diameter", ring_inner_r*2);
-echo("ring outer diameter", ring_outer_r*2);
+echo("*** kube dimensions ***");
+echo("scaling vector", "=", kube_s);
+echo("magnet diameter", "=", magnet_r*2);
+echo("flk width", "=", flk_w);
+echo("kube width", "=", outer_w);
+echo("support diameter", "=", support_r*2);
+echo("support height", "=", support_h);
+echo("ring height", "=", ring_h);
+echo("ring inner diameter", "=", ring_inner_r*2);
+echo("ring outer diameter", "=", ring_outer_r*2);
+echo("***********************");
 
 module kube()
 {

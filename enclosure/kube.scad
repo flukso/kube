@@ -39,7 +39,7 @@ flk_h = 23.5;
 flk_t = 0.2;
 flk_w = 30.5 + 2*flk_t;
 
-wall_w = 2;
+wall_w = 1;
 outer_w = flk_w + 2*wall_w;
 
 support_h = outer_w - wall_w - flk_h;

@@ -28,7 +28,7 @@
 */
 
 dim_s = 1;
-dim_s = 1.04; /* makerbot */
+dim_s = 1.015; /* makerbot */
 kube_s = [dim_s, dim_s, dim_s];
 
 magnet_h = 5;
@@ -66,8 +66,8 @@ module kube()
 {
 	difference() {
 		cube(outer_w);
-		translate([wall_w, wall_w, wall_w + magnet_h]) {
-			cube(flk_w, flk_w, outer_w - (wall_w + magnet_h));
+		translate([wall_w, wall_w, wall_w]) {
+			cube([flk_w, flk_w, outer_w - wall_w]);
 		}
 	}
 

@@ -46,7 +46,7 @@ support_h = outer_w - wall_w - flk_h;
 support_r = magnet_r;
 
 ring_h = support_h - magnet_h;
-ring_t = 0.1;
+ring_t = 0.2;
 ring_inner_r = support_r + ring_t;
 ring_outer_r = ring_inner_r + 2;
 

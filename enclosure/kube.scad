@@ -17,12 +17,13 @@
 	along with this program. If not, see <http://www.gnu.org/licenses/>.
 */
 
-/*$fn = 100; /* number of facets per circle */
+$fn = 100; /* number of facets per circle */
 
 /*
 	_h = height
 	_w = width
 	_r = radius
+	_g = gap
 	_t = tolerance
 	_s = scaling factor (printer specific)
 */
@@ -32,7 +33,7 @@ dim_s = 1.015; /* makerbot */
 kube_s = [dim_s, dim_s, dim_s];
 
 magnet_h = 5;
-magnet_t = 0.2;
+magnet_t = 0.1;
 magnet_r = 8 - magnet_t; /* inner diameter now! */
 
 flk_h = 23.5;
@@ -44,6 +45,8 @@ outer_w = flk_w + 2*wall_w;
 
 support_h = outer_w - wall_w - flk_h;
 support_r = magnet_r;
+support_w = 1;
+support_g = 3;
 
 ring_h = support_h - magnet_h;
 ring_t = 0.2;
@@ -72,7 +75,12 @@ module kube()
 	}
 
 	translate([outer_w/2, outer_w/2, wall_w]) {
-		cylinder(r=support_r, h=support_h);
+		rotate(a=[0, 0, 45]) difference() {
+			cylinder(r=support_r, h=support_h);
+			cylinder(r=support_r - support_w, h=support_h);
+			translate([-support_r, -support_g/2, 0]) cube([support_r*2, support_g, support_h]);
+			translate([-support_g/2, -support_r, 0]) cube([support_g, support_r*2, support_h]);
+		}
 	}
 }
 

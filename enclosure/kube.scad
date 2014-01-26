@@ -53,6 +53,8 @@ ring_t = 0.2;
 ring_inner_r = support_r + ring_t;
 ring_outer_r = ring_inner_r + 2;
 
+hole_r = 1.2;
+
 echo("*** kube dimensions ***");
 echo("scaling vector", "=", kube_s);
 echo("magnet diameter", "=", magnet_r*2);
@@ -72,6 +74,7 @@ module kube()
 		translate([wall_w, wall_w, wall_w]) {
 			cube([flk_w, flk_w, outer_w - wall_w]);
 		}
+		translate([outer_w/2, outer_w/2, 0]) cylinder(r=hole_r, h=wall_w);
 	}
 
 	translate([outer_w/2, outer_w/2, wall_w]) {

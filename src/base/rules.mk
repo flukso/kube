@@ -40,7 +40,7 @@ firmware.elf: ../base/$(LINK) $(OBJS)
 	$(SIZE) $@
 
 clean:
-	rm -f *.o *.d # firmware.{elf,hex,bin,map}
+	rm -f *.o *.d firmware.*
 ifeq (${MAKELEVEL}, 0) # careful with recursion in ./base itself
 	make -C ../base clean
 endif

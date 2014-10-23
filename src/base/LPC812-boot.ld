@@ -1,0 +1,7 @@
+MEMORY
+{
+  FLASH (rx) : ORIGIN = 0x00000000, LENGTH = 16k
+  RAM (rwx) : ORIGIN = 0x10000000+0x280, LENGTH = 4k-0x280 /* 0x270 for IAP */
+}
+
+INCLUDE rules.ld

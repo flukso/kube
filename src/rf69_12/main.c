@@ -1,13 +1,4 @@
-#if LPC_MAX + LPC_NXP + LPC_JEEa + LPC_JEE != 1
-#error must define one of LPC_MAX, LPC_NXP, LPC_JEEa, or LPC_JEE
-#endif
-
-#if LPC_MAX
-#define REMOTE_TYPE 0x200
-#else
-#define REMOTE_TYPE 0x300
-#endif
-
+#define REMOTE_TYPE 0x4B11
 #define PAIRING_GROUP 212
 
 #define __VTOR_PRESENT 1
@@ -18,8 +9,10 @@
 #include "rf69_12.h"
 #include "iap_driver.h"
 
-// #define printf(...)
+#ifndef DEBUG
+#define printf(...)
 #define dump(...)
+#endif
 
 static volatile uint32_t msTicks;
 
@@ -48,49 +41,17 @@ uint32_t hwId [4];
 static void configurePins (void) {
   /* Enable clocks to IOCON & SWM */
   LPC_SYSCON->SYSAHBCLKCTRL |= (1 << 18) | (1 << 7);
-  /* Pin Assign 8 bit Configuration */
 #ifndef printf
-  /* U0_TXD */
-  /* U0_RXD */
-#if LPC_JEEa || LPC_JEE
-  LPC_SWM->PINASSIGN0 = 0xffff0004UL; 
-#else
-  LPC_SWM->PINASSIGN0 = 0xffff0106UL; 
+  /* UART0_TXD 9 */
+  /* UART0_RXD 8  */
+  LPC_SWM->PINASSIGN0 = 0xffff0809UL;
 #endif
-#endif
-#if LPC_MAX
-  // irq 8 ?
-  /* SPI0_SCK 12 */
-  LPC_SWM->PINASSIGN3 = 0x0cffffffUL; 
-  /* SPI0_MOSI 14 */
-  /* SPI0_MISO 15 */
-  /* SPI0_SSEL 13 */
-  LPC_SWM->PINASSIGN4 = 0xff0d0f0eUL;
-#endif
-#if LPC_NXP
-  /* SPI0_SCK 14 */
-  LPC_SWM->PINASSIGN3 = 0x0effffffUL; 
-  /* SPI0_MOSI 13 */
-  /* SPI0_MISO 12 */
-  /* SPI0_SSEL 10 */
-  LPC_SWM->PINASSIGN4 = 0xff0a0c0dUL;
-#endif
-#if LPC_JEEa
-  /* SPI0_SCK 6 */
-  LPC_SWM->PINASSIGN3 = 0x06ffffffUL; 
-  /* SPI0_MOSI 9 */
-  /* SPI0_MISO 8 */
-  /* SPI0_SSEL 7 */
-  LPC_SWM->PINASSIGN4 = 0xff070809UL;
-#endif
-#if LPC_JEE
-  /* SPI0_SCK 6 */
-  LPC_SWM->PINASSIGN3 = 0x06ffffffUL; 
-  /* SPI0_MOSI 9 */
-  /* SPI0_MISO 11 */
-  /* SPI0_SSEL 8 */
-  LPC_SWM->PINASSIGN4 = 0xff080b09UL;
-#endif
+  /* SPI0_SCK 7 */
+  LPC_SWM->PINASSIGN3 = 0x07ffffffUL;
+  /* SPI0_MOSI 1 */
+  /* SPI0_MISO 13 */
+  /* SPI0_SSEL 14 */
+  LPC_SWM->PINASSIGN4 = 0xff0e0d01UL;
 }
 
 static void launchApp() {
@@ -106,7 +67,7 @@ static void launchApp() {
 int main (void) {
   configurePins();
 #ifndef printf
-  uart0Init(57600);
+  uart0Init(115200);
 #endif
   
   SysTick_Config(__SYSTEM_CLOCK/1000-1);   // 1000 Hz

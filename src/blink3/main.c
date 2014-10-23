@@ -14,11 +14,15 @@ static void delayMillis (uint32_t ms) {
 
 int main (void) {
   SysTick_Config(__SYSTEM_CLOCK/1000-1);   // 1000 Hz
-  LPC_GPIO_PORT->DIR0 |= (1 << 13);
+  LPC_GPIO_PORT->DIR0 |= (1 << 0);
 
   while (1) {
-    LPC_GPIO_PORT->NOT0 = 1 << 13;
-    delayMillis(250);
+    for (int i=0; i<3; i++) {
+      LPC_GPIO_PORT->NOT0 = 1 << 0;
+      delayMillis(100);
+    }
+      LPC_GPIO_PORT->NOT0 = 1 << 0;
+      delayMillis(700);
   }
   
   return 0;

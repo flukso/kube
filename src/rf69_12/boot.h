@@ -51,18 +51,29 @@ static int sendRequest (const void* buf, int len, int hdrOr) {
   // printf("sending %d b\n", len);
   rf12_sendNow(RF12_HDR_CTL | RF12_HDR_ACK | hdrOr, buf, len);
   rf12_sendWait(0);
-  uint32_t now = millis();
-  while (!rf12_recvDone() || rf12_len == 0) // TODO: 0-check to avoid std acks?
-    if ((millis() - now) >= 250) {
-      printf("timed out\n");
-      return -1;
+  uint32_t start = millis();
+  uint32_t timeout = 250;
+
+  while (millis() - start < timeout) {
+    if (rf12_recvDone()) {
+      // extend the timeout when receiving an OOB ack
+      if (rf12_len == 0 && (rf12_hdr & RF12_HDR_CTL) && (rf12_hdr & RF12_HDR_ACK)) {
+        timeout = 2500;
+        printf("extending timeout\n");
+        continue;
+      }
+
+      if (rf12_crc) {
+        printf("bad crc %04X\n", rf12_crc);
+        return 0;
+      }
+
+      printf("got %d b hdr 0x%X crc %X\n", rf12_len, rf12_hdr, rf12_crc);
+      return 1;
     }
-  if (rf12_crc) {
-    printf("bad crc %04X\n", rf12_crc);
-    return 0;
   }
+
   printf("got %d b hdr 0x%X crc %X\n", rf12_len, rf12_hdr, rf12_crc);
-  dump("recv", (const uint8_t*) rf12_data, rf12_len);
   return 1;
 }
 
@@ -135,24 +146,28 @@ static void sendPairingCheck () {
 // without server, this'll listen for 250 ms up to 85x/day = 21 s = 0.25% duty
 
 static void exponentialBackOff () {
-  printf("wait %d\n", 250 << backOffCounter);
-  sleep(250L << backOffCounter);
+  printf("wait %d\n", 1000 << backOffCounter);
+  sleep(1000L << backOffCounter);
   if (backOffCounter < 16)
     ++backOffCounter;
 }
 
 static int appIsValid () {
+  //dump("firmware", BASE_ADDR, config.swSize << 4);
   return calcCRC(BASE_ADDR, config.swSize << 4) == config.swCheck;
 }
 
-static int sendUpgradeCheck () {
+static int sendUpgradeCheck (uint8_t processReply) {
   struct UpgradeRequest request;
   request.type = REMOTE_TYPE;
   request.swId = config.swId;
   request.swSize = config.swSize;
   request.swCheck = config.swCheck;
   struct UpgradeReply reply;
-  if (sendRequest(&request, sizeof request, 0) > 0 && rf12_len == sizeof reply) {
+  if (sendRequest(&request, sizeof request, 0) > 0 &&
+        rf12_len == sizeof reply &&
+        processReply)
+  {
     memcpy(&reply, (const void*) rf12_data, sizeof reply);
     // ...
     config.swId = reply.swId;
@@ -197,13 +212,15 @@ static void bootLoaderLogic () {
       break;
     exponentialBackOff();
   }
-  
+
+  //printf("grp=%d,nid=%d\n", config.group, config.nodeId);
   rf12_initialize(config.nodeId, RF12_868MHZ, config.group);
+  //rf12_update(config.nodeId, config.group);
 
   printf("3\n");
   backOffCounter = 0;
   do {
-    if (sendUpgradeCheck())
+    if (sendUpgradeCheck(1))
       break;
     exponentialBackOff();
   } while (! appIsValid());
@@ -216,6 +233,7 @@ static void bootLoaderLogic () {
       while (sendDownloadRequest(i) == 0)
         exponentialBackOff();
     }
+    sendUpgradeCheck(0);
   }
 
   printf("5\n");

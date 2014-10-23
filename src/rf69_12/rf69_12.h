@@ -42,6 +42,9 @@ extern volatile uint8_t rf12_buf[];
 /// Call this once with the node ID, frequency band, and optional group.
 uint8_t rf12_initialize(uint8_t id, uint8_t band, uint8_t group);
 
+/// Call this when updating the node's group and id.
+uint8_t rf12_update(uint8_t id, uint8_t group);
+
 /// Call this frequently, returns true if a packet has been received.
 uint8_t rf12_recvDone(void);
 

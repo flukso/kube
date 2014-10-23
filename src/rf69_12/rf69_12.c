@@ -87,6 +87,13 @@ uint8_t rf12_initialize(uint8_t id, uint8_t band, uint8_t g) {
   return nodeid;
 }
 
+uint8_t rf12_update(uint8_t id, uint8_t g) {
+  nodeid = id;
+  group = g;
+  writeReg(REG_SYNCVALUE2, g);
+  return nodeid;
+}
+
 uint8_t rf12_recvDone(void) {
   if (rxstate == TXIDLE) {
     rxfill = rf12_len = 0;

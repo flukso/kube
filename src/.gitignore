@@ -1,0 +1,27 @@
+# Object files
+*.o
+*.d
+
+# Libraries
+*.lib
+*.a
+
+# Shared objects (inc. Windows DLLs)
+*.dll
+*.so
+*.so.*
+*.dylib
+
+# Binaries
+*.bin
+*.elf
+*.hex
+*.map
+
+# Executables
+*.exe
+*.out
+*.app
+
+# Swap files
+*.swp

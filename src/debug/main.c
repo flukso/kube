@@ -4,10 +4,10 @@
 #include <stdio.h>
 #include "uart.h"
 
-const int ledPin = 0;
+#define LED_PIN 0
 
-static I2C_HANDLE_T *i2cHandle;
-static uint32_t i2cMem[24];
+static I2C_HANDLE_T *i2c_handle;
+static uint32_t i2c_mem[24];
 
 volatile uint32_t msTicks;
 
@@ -22,14 +22,7 @@ static void sleep(uint32_t ms)
     while ((msTicks-now) < ms);
 }
 
-static void clkInit(void)
-{
-#define I2C 5
-#define IOCON 18
-    LPC_SYSCON->SYSAHBCLKCTRL |= (1 << IOCON) | (1 << I2C);
-}  
-
-static void switchInit(void)
+static void switch_init(void)
 {
     /* UART0_TXD 9 */
     /* UART0_RXD 8 */
@@ -44,7 +37,28 @@ static void switchInit(void)
     LPC_SWM->PINASSIGN8 = 0xFF03FF0BUL;
 }
 
-static void clkoutInit(void)
+static void clk_init(void)
+{
+#define I2C 5
+#define IOCON 18
+    LPC_SYSCON->SYSAHBCLKCTRL |= (1 << I2C) | (1 << IOCON);
+    SysTick_Config(__SYSTEM_CLOCK/1000-1);   // 1000 Hz
+}
+
+static void led_init(void)
+{
+    LPC_GPIO_PORT->DIR0 |= (1 << LED_PIN);
+}
+
+static void led_blink(void)
+{
+    LPC_GPIO_PORT->NOT0 = 1 << LED_PIN;
+    sleep(100);
+    LPC_GPIO_PORT->NOT0 = 1 << LED_PIN;
+    sleep(900);
+} 
+
+static void clkout_init(void)
 {
     /* select main clock as CLKOUT */
     LPC_SYSCON->CLKOUTSEL = 3;
@@ -53,68 +67,123 @@ static void clkoutInit(void)
     LPC_SYSCON->CLKOUTDIV = 1;
 }
 
-static void i2cInit(void)
+static void i2c_init(void)
 {
-    ErrorCode_t errCode;
+    ErrorCode_t err_code;
     printf("[i2c] firmware: v%u\n", (unsigned int)LPC_I2CD_API->i2c_get_firmware_version());
     printf("[i2c] memsize: %uB\n", (unsigned int)LPC_I2CD_API->i2c_get_mem_size());
-    i2cHandle = LPC_I2CD_API->i2c_setup(LPC_I2C_BASE, i2cMem);
-#define I2C_BITRATE 10000UL
-    errCode = LPC_I2CD_API->i2c_set_bitrate(i2cHandle, __SYSTEM_CLOCK, I2C_BITRATE);
-    printf("[i2c] set_bitrate ErrorCode: %x\n", errCode);
+    i2c_handle = LPC_I2CD_API->i2c_setup(LPC_I2C_BASE, i2c_mem);
+#define I2C_CLOCKRATE 10000UL
+    printf("[i2c] clk: %uHz\n", (unsigned int)I2C_CLOCKRATE);
+    err_code = LPC_I2CD_API->i2c_set_bitrate(i2c_handle, __SYSTEM_CLOCK, I2C_CLOCKRATE);
+    printf("[i2c] set_bitrate err: %x\n", err_code);
 #define I2C_TIMEOUT 100UL
-    errCode = LPC_I2CD_API->i2c_set_timeout(i2cHandle, I2C_TIMEOUT);
-    printf("[i2c] set_timeout StatusCode: %x\n", errCode);
+    err_code = LPC_I2CD_API->i2c_set_timeout(i2c_handle, I2C_TIMEOUT);
+    printf("[i2c] set_timeout stat: %x\n", err_code);
 }
 
-static void htu21d_RdUser()
+#define HTU21D_ADDRESS 0x40
+#define HTU21D_CMD_TEMP_HOLD 0xE3
+#define HTU21D_CMD_HUMID_HOLD 0xE5
+#define HTU21D_CMD_READ_USER 0xE7
+#define HTU21D_CMD_SOFT_RESET 0xFE
+
+static ErrorCode_t htu21d_cmd(uint8_t cmd, uint8_t rx_buffer[], size_t rx_count)
 {
     static unsigned int i = 0;
-    uint8_t txBuffer[2];
-    uint8_t rxBuffer[2];
-#define HTU21D_I2C_ADDRESS 0x40
-#define HTU21D_I2C_CMD_READ_USER_REGISTER 0xE7
-    txBuffer[0] = HTU21D_I2C_ADDRESS << 1;
-    txBuffer[1] = HTU21D_I2C_CMD_READ_USER_REGISTER;
-    rxBuffer[0] = HTU21D_I2C_ADDRESS << 1 | 0x01;
-    rxBuffer[1] = 0;
+    uint8_t tx_buffer[2];
+    tx_buffer[0] = HTU21D_ADDRESS << 1;
+    tx_buffer[1] = cmd;
+    if (rx_count > 0) {
+        rx_buffer[0] = HTU21D_ADDRESS << 1 | 0x01;
+    }
 
     I2C_PARAM_T param = {
         .num_bytes_send = 2,
-        .num_bytes_rec = 2,
-        .buffer_ptr_send = txBuffer,
-        .buffer_ptr_rec = rxBuffer,
+        .num_bytes_rec = rx_count,
+        .buffer_ptr_send = tx_buffer,
+        .buffer_ptr_rec = rx_buffer,
         .stop_flag = 1
     };
     I2C_RESULT_T result;
-    ErrorCode_t errCode;
+    ErrorCode_t err_code;
 
-    errCode = LPC_I2CD_API->i2c_master_tx_rx_poll(i2cHandle, &param, &result);
-    printf("[htu21d] i: %u\n", i++);
-    printf("[htu21d] poll ErrorCode: 0x%x\n", errCode);
-    printf("[htu21d] user register: 0x%x\n", rxBuffer[1]);
+    err_code = LPC_I2CD_API->i2c_master_tx_rx_poll(i2c_handle, &param, &result);
+    printf("[htu21d] i: %u cmd: 0x%02X\n", i++, cmd);
+    printf("[htu21d] err: 0x%02X\n", err_code);
+    if (rx_count > 0) {
+        printf("[htu21d] rx: 0x");
+        for (uint32_t j = 0; j < rx_count; j++) {
+            printf("%02X", rx_buffer[j]);
+        }
+        printf("\n");
+    }
+    return err_code;
+}
+
+static void htu21d_soft_reset()
+{
+    htu21d_cmd(HTU21D_CMD_SOFT_RESET, NULL, 0);
+}
+
+static void htu21d_read_user()
+{
+    uint8_t rx_buffer[2];
+    htu21d_cmd(HTU21D_CMD_READ_USER, rx_buffer, sizeof(rx_buffer));
+}
+
+static ErrorCode_t htu21d_measure(uint8_t cmd, uint16_t *sample)
+{
+    uint8_t rx_buffer[4];
+    ErrorCode_t err_code;
+    err_code = htu21d_cmd(cmd, rx_buffer, sizeof(rx_buffer));
+    /* TODO add CRC8 checking */
+    *sample = (rx_buffer[1] << 8) | (rx_buffer[2] & 0xFC);
+    return err_code;
+}
+
+static void htu21d_measure_temp()
+{
+    uint16_t sample;
+    double temp;
+    ErrorCode_t err_code;
+    err_code = htu21d_measure(HTU21D_CMD_TEMP_HOLD, &sample);
+    if (err_code == LPC_OK) {
+        temp = -46.85 + 175.72 * ((double)sample / 65536);
+        printf("[temp] %dm°C\n", (int)(1000 * temp));
+    }
+}
+
+static void htu21d_measure_humid()
+{
+    uint16_t sample;
+    double humid;
+    ErrorCode_t err_code;
+    err_code = htu21d_measure(HTU21D_CMD_HUMID_HOLD, &sample);
+    if (err_code == LPC_OK) {
+        humid = -6 + 125 * ((double)sample / 65536);
+        printf("[humid] %dpm\n", (int)(10 * humid));
+    }
 }
 
 int main(void)
 {
-    switchInit();
-    clkInit();
-    clkoutInit();
+    switch_init();
+    clk_init();
+    // clkout_init()
     uart0Init(115200);
     printf("\n--- kube start ---\n");
-    printf("[clk] sys: %uHz\n", (unsigned int)__SYSTEM_CLOCK);
-    i2cInit();
+    printf("[sys] clk: %uHz\n", (unsigned int)__SYSTEM_CLOCK);
+    i2c_init();
+    led_init();
 
-    SysTick_Config(__SYSTEM_CLOCK/1000-1);   // 1000 Hz
-    LPC_GPIO_PORT->DIR0 |= (1 << ledPin);
-
+//    htu21d_soft_reset();
+//    sleep(100);
+    htu21d_read_user();
     while (1) {
-        htu21d_RdUser();
-        LPC_GPIO_PORT->NOT0 = 1 << ledPin;
-        sleep(100);
-        LPC_GPIO_PORT->NOT0 = 1 << ledPin;
-        sleep(900);
+        htu21d_measure_temp();
+        htu21d_measure_humid();
+        led_blink();
     }
-
     return 0;
 }

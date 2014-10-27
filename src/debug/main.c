@@ -59,7 +59,7 @@ static void i2cInit(void)
     printf("[i2c] firmware: v%u\n", (unsigned int)LPC_I2CD_API->i2c_get_firmware_version());
     printf("[i2c] memsize: %uB\n", (unsigned int)LPC_I2CD_API->i2c_get_mem_size());
     i2cHandle = LPC_I2CD_API->i2c_setup(LPC_I2C_BASE, i2cMem);
-#define I2C_BITRATE 400000UL
+#define I2C_BITRATE 10000UL
     errCode = LPC_I2CD_API->i2c_set_bitrate(i2cHandle, __SYSTEM_CLOCK, I2C_BITRATE);
     printf("[i2c] set_bitrate ErrorCode: %x\n", errCode);
 #define I2C_TIMEOUT 100UL
@@ -69,14 +69,15 @@ static void i2cInit(void)
 
 static void htu21d_RdUser()
 {
+    static unsigned int i = 0;
     uint8_t txBuffer[2];
     uint8_t rxBuffer[2];
-    //uint32_t i = 0;
 #define HTU21D_I2C_ADDRESS 0x40
 #define HTU21D_I2C_CMD_READ_USER_REGISTER 0xE7
     txBuffer[0] = HTU21D_I2C_ADDRESS << 1;
     txBuffer[1] = HTU21D_I2C_CMD_READ_USER_REGISTER;
     rxBuffer[0] = HTU21D_I2C_ADDRESS << 1 | 0x01;
+    rxBuffer[1] = 0;
 
     I2C_PARAM_T param = {
         .num_bytes_send = 2,
@@ -89,6 +90,7 @@ static void htu21d_RdUser()
     ErrorCode_t errCode;
 
     errCode = LPC_I2CD_API->i2c_master_tx_rx_poll(i2cHandle, &param, &result);
+    printf("[htu21d] i: %u\n", i++);
     printf("[htu21d] poll ErrorCode: 0x%x\n", errCode);
     printf("[htu21d] user register: 0x%x\n", rxBuffer[1]);
 }
@@ -103,12 +105,11 @@ int main(void)
     printf("[clk] sys: %uHz\n", (unsigned int)__SYSTEM_CLOCK);
     i2cInit();
 
-    htu21d_RdUser();
-
     SysTick_Config(__SYSTEM_CLOCK/1000-1);   // 1000 Hz
     LPC_GPIO_PORT->DIR0 |= (1 << ledPin);
 
     while (1) {
+        htu21d_RdUser();
         LPC_GPIO_PORT->NOT0 = 1 << ledPin;
         sleep(100);
         LPC_GPIO_PORT->NOT0 = 1 << ledPin;

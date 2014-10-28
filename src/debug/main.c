@@ -15,11 +15,41 @@ void SysTick_Handler(void)
 {
     ++msTicks;
 }
+void WKT_IRQHandler(void)
+{
+#define ALARMFLAG 1
+    LPC_WKT->CTRL |= (1 << ALARMFLAG);
+}
 
-static void sleep(uint32_t ms)
+static void wkt_init(void)
+{
+#define WKT 9
+    LPC_SYSCON->SYSAHBCLKCTRL |= (1 << WKT);
+#define WKT_IRQ 15
+    NVIC_EnableIRQ(WKT_IRQ);
+    LPC_SYSCON->STARTERP1 |= (1 << WKT_IRQ);
+    /* use 10kHz low-power oscillator for wkt */
+#define LPOSCEN 2
+    LPC_PMU->DPDCTRL |= (1 << LPOSCEN);
+#define CLKSEL 0
+    LPC_WKT->CTRL |= (1 << CLKSEL);
+}
+
+static void wait(uint32_t ms)
 {
     uint32_t now = msTicks;
     while ((msTicks-now) < ms);
+}
+
+static void sleep(uint32_t ms)
+{
+    LPC_SYSCON->PDAWAKECFG = LPC_SYSCON->PDRUNCFG;
+    LPC_WKT->COUNT = 10 * ms;
+#define SLEEPDEEP 2
+    SCB->SCR |= (1 << SLEEPDEEP);
+#define POWER_DOWN 0x02
+    LPC_PMU->PCON = POWER_DOWN;
+    __WFI();
 }
 
 static void switch_init(void)
@@ -39,14 +69,13 @@ static void switch_init(void)
 
 static void clk_init(void)
 {
-#define I2C 5
-#define IOCON 18
-    LPC_SYSCON->SYSAHBCLKCTRL |= (1 << I2C) | (1 << IOCON);
     SysTick_Config(__SYSTEM_CLOCK/1000-1);   // 1000 Hz
 }
 
 static void led_init(void)
 {
+#define IOCON 18
+    LPC_SYSCON->SYSAHBCLKCTRL |= (1 << IOCON);
     LPC_GPIO_PORT->DIR0 |= (1 << LED_PIN);
 }
 
@@ -69,6 +98,8 @@ static void clkout_init(void)
 
 static void i2c_init(void)
 {
+#define I2C 5
+    LPC_SYSCON->SYSAHBCLKCTRL |= (1 << I2C);
     ErrorCode_t err_code;
     printf("[i2c] firmware: v%u\n", (unsigned int)LPC_I2CD_API->i2c_get_firmware_version());
     printf("[i2c] memsize: %uB\n", (unsigned int)LPC_I2CD_API->i2c_get_mem_size());
@@ -150,7 +181,7 @@ static void htu21d_measure_temp()
     err_code = htu21d_measure(HTU21D_CMD_TEMP_HOLD, &sample);
     if (err_code == LPC_OK) {
         temp = -46.85 + 175.72 * ((double)sample / 65536);
-        printf("[temp] %dm°C\n", (int)(1000 * temp));
+        printf("[temp] %dmC\n", (int)(1000 * temp));
     }
 }
 
@@ -170,12 +201,13 @@ int main(void)
 {
     switch_init();
     clk_init();
-    // clkout_init()
+    clkout_init();
     uart0Init(115200);
     printf("\n--- kube start ---\n");
     printf("[sys] clk: %uHz\n", (unsigned int)__SYSTEM_CLOCK);
     i2c_init();
     led_init();
+    wkt_init();
 
 //    htu21d_soft_reset();
 //    sleep(100);
@@ -183,6 +215,7 @@ int main(void)
     while (1) {
         htu21d_measure_temp();
         htu21d_measure_humid();
+        wait(2); /* make sure UART tx has finished */
         led_blink();
     }
     return 0;

@@ -15,6 +15,13 @@ void SysTick_Handler(void)
 {
     ++msTicks;
 }
+
+static void wait(uint32_t ms)
+{
+    uint32_t now = msTicks;
+    while ((msTicks-now) < ms);
+}
+
 void WKT_IRQHandler(void)
 {
 #define ALARMFLAG 1
@@ -33,12 +40,6 @@ static void wkt_init(void)
     LPC_PMU->DPDCTRL |= (1 << LPOSCEN);
 #define CLKSEL 0
     LPC_WKT->CTRL |= (1 << CLKSEL);
-}
-
-static void wait(uint32_t ms)
-{
-    uint32_t now = msTicks;
-    while ((msTicks-now) < ms);
 }
 
 static void sleep(uint32_t ms)
@@ -60,11 +61,11 @@ static void switch_init(void)
     /* disable SWCLK on PIO0_3 */
 #define SWCLK_EN 2;
     LPC_SWM->PINENABLE0 |= 1 << SWCLK_EN;
-    /* I2C0_SDA 10 TODO: 11? */
-    LPC_SWM->PINASSIGN7 = 0x0AFFFFFFUL;
-    /* I2C0_SCL 11 TODO: 10? */
+    /* I2C0_SDA 11 */
+    LPC_SWM->PINASSIGN7 = 0x0BFFFFFFUL;
+    /* I2C0_SCL 10 */
     /* CLKOUT 3 */
-    LPC_SWM->PINASSIGN8 = 0xFF03FF0BUL;
+    LPC_SWM->PINASSIGN8 = 0xFF03FF0AUL;
 }
 
 static void clk_init(void)

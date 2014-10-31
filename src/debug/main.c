@@ -6,8 +6,10 @@
 
 #define LED_PIN 0
 
-static I2C_HANDLE_T *i2c_handle;
-static uint32_t i2c_mem[24];
+static struct {
+    I2C_HANDLE_T *handle;
+    uint32_t mem[24];
+} i2c;
 
 volatile uint32_t msTicks;
 
@@ -104,13 +106,13 @@ static void i2c_init(void)
     ErrorCode_t err_code;
     printf("[i2c] firmware: v%u\n", (unsigned int)LPC_I2CD_API->i2c_get_firmware_version());
     printf("[i2c] memsize: %uB\n", (unsigned int)LPC_I2CD_API->i2c_get_mem_size());
-    i2c_handle = LPC_I2CD_API->i2c_setup(LPC_I2C_BASE, i2c_mem);
+    i2c.handle = LPC_I2CD_API->i2c_setup(LPC_I2C_BASE, i2c.mem);
 #define I2C_CLOCKRATE 10000UL
     printf("[i2c] clk: %uHz\n", (unsigned int)I2C_CLOCKRATE);
-    err_code = LPC_I2CD_API->i2c_set_bitrate(i2c_handle, __SYSTEM_CLOCK, I2C_CLOCKRATE);
+    err_code = LPC_I2CD_API->i2c_set_bitrate(i2c.handle, __SYSTEM_CLOCK, I2C_CLOCKRATE);
     printf("[i2c] set_bitrate err: %x\n", err_code);
 #define I2C_TIMEOUT 100UL
-    err_code = LPC_I2CD_API->i2c_set_timeout(i2c_handle, I2C_TIMEOUT);
+    err_code = LPC_I2CD_API->i2c_set_timeout(i2c.handle, I2C_TIMEOUT);
     printf("[i2c] set_timeout stat: %x\n", err_code);
 }
 
@@ -140,7 +142,7 @@ static ErrorCode_t htu21d_cmd(uint8_t cmd, uint8_t rx_buffer[], size_t rx_count)
     I2C_RESULT_T result;
     ErrorCode_t err_code;
 
-    err_code = LPC_I2CD_API->i2c_master_tx_rx_poll(i2c_handle, &param, &result);
+    err_code = LPC_I2CD_API->i2c_master_tx_rx_poll(i2c.handle, &param, &result);
     printf("[htu21d] i: %u cmd: 0x%02X\n", i++, cmd);
     printf("[htu21d] err: 0x%02X\n", err_code);
     if (rx_count > 0) {
@@ -210,8 +212,8 @@ int main(void)
     led_init();
     wkt_init();
 
-//    htu21d_soft_reset();
-//    sleep(100);
+    htu21d_soft_reset();
+    sleep(100);
     htu21d_read_user();
     while (1) {
         htu21d_measure_temp();

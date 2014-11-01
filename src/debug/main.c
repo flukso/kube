@@ -80,6 +80,8 @@ static void led_init(void)
 #define IOCON 18
     LPC_SYSCON->SYSAHBCLKCTRL |= (1 << IOCON);
     LPC_GPIO_PORT->DIR0 |= (1 << LED_PIN);
+#define MODE1 4
+    LPC_IOCON->PIO0_0 &= ~(1 << MODE1);
 }
 
 static void led_blink(void)

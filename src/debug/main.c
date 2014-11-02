@@ -61,14 +61,16 @@ static void sleep(uint32_t ms)
 
 static void switch_init(void)
 {
+#define IOCON 18
+    LPC_SYSCON->SYSAHBCLKCTRL |= (1 << IOCON);
     /* UART0_TXD 9 */
     /* UART0_RXD 8 */
     LPC_SWM->PINASSIGN0 = 0xFFFF0809UL;
+    /* I2C0_SDA 11 */
+    LPC_SWM->PINASSIGN7 = 0x0BFFFFFFUL;
     /* disable SWCLK on PIO0_3 */
 #define SWCLK_EN 2;
     LPC_SWM->PINENABLE0 |= 1 << SWCLK_EN;
-    /* I2C0_SDA 11 */
-    LPC_SWM->PINASSIGN7 = 0x0BFFFFFFUL;
     /* I2C0_SCL 10 */
     /* CLKOUT 3 */
     LPC_SWM->PINASSIGN8 = 0xFF03FF0AUL;
@@ -81,8 +83,6 @@ static void clk_init(void)
 
 static void led_init(void)
 {
-#define IOCON 18
-    LPC_SYSCON->SYSAHBCLKCTRL |= (1 << IOCON);
     LPC_GPIO_PORT->DIR0 |= (1 << LED_PIN);
 #define MODE1 4
     LPC_IOCON->PIO0_0 &= ~(1 << MODE1);
@@ -93,11 +93,13 @@ static void led_blink(void)
     LPC_GPIO_PORT->NOT0 = 1 << LED_PIN;
     sleep(100);
     LPC_GPIO_PORT->NOT0 = 1 << LED_PIN;
-    sleep(900);
+    sleep(5000);
 } 
 
 static void clkout_init(void)
 {
+#define MODE1 4
+    LPC_IOCON->PIO0_3 &= ~(1 << MODE1);
     /* select main clock as CLKOUT */
     LPC_SYSCON->CLKOUTSEL = 3;
     LPC_SYSCON->CLKOUTUEN = 0;

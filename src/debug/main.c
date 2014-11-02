@@ -6,6 +6,10 @@
 
 #define LED_PIN 0
 
+#ifndef DEBUG
+#define printf(...)
+#endif
+
 static struct {
     I2C_HANDLE_T *handle;
     uint32_t mem[24];
@@ -99,6 +103,11 @@ static void clkout_init(void)
     LPC_SYSCON->CLKOUTUEN = 0;
     LPC_SYSCON->CLKOUTUEN = 1;
     LPC_SYSCON->CLKOUTDIV = 1;
+}
+
+static void uart_init(void)
+{
+    uart0Init(115200);
 }
 
 static void i2c_init(void)
@@ -207,7 +216,9 @@ int main(void)
     switch_init();
     clk_init();
     clkout_init();
-    uart0Init(115200);
+#ifdef DEBUG
+    uart_init();
+#endif
     printf("\n--- kube start ---\n");
     printf("[sys] clk: %uHz\n", (unsigned int)__SYSTEM_CLOCK);
     i2c_init();
@@ -219,8 +230,13 @@ int main(void)
     htu21d_read_user();
     while (1) {
         htu21d_measure_temp();
+#ifndef DEBUG
+        wait(1); /* needed for proper i2c operation */
+#endif
         htu21d_measure_humid();
+#ifdef DEBUG
         wait(2); /* make sure UART tx has finished */
+#endif
         led_blink();
     }
     return 0;

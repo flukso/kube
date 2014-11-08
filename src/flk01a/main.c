@@ -20,7 +20,7 @@ static struct {
     uint32_t mem[24];
 } i2c;
 
-volatile uint32_t time, mtime;
+volatile uint32_t mtime = 0;
 
 static void systick_init(void)
 {
@@ -52,12 +52,10 @@ static void wkt_init(void)
     LPC_PMU->DPDCTRL |= (1 << LPOSCEN);
 #define CLKSEL 0
     LPC_WKT->CTRL |= (1 << CLKSEL);
-}
-
-static void sleep(uint32_t ms)
-{
+    /* wake up from power-down every second */
     LPC_SYSCON->PDAWAKECFG = LPC_SYSCON->PDRUNCFG;
-    LPC_WKT->COUNT = 10 * ms;
+#define MILLIS 1000
+    LPC_WKT->COUNT = 10 * MILLIS;
 #define SLEEPONEXIT 1
 #define SLEEPDEEP 2
     SCB->SCR |= (1 << SLEEPONEXIT) | (1 << SLEEPDEEP);
@@ -230,20 +228,6 @@ static void ekmb_init()
     LPC_PIN_INT->SIENR |= (1 << PINT0);
 } 
 
-void WKT_IRQHandler(void)
-{
-#define ALARMFLAG 1
-    LPC_WKT->CTRL |= (1 << ALARMFLAG);
-#define MILLIS 5000
-    LPC_WKT->COUNT = 10 * MILLIS;
-    htu21d_measure_temp();
-#ifndef DEBUG
-    spin(1); /* needed for proper i2c operation */
-#endif
-    htu21d_measure_humid();
-    led_blink();
-}
-
 void PININT0_IRQHandler(void)
 {
     /* clear rising edge */
@@ -252,6 +236,23 @@ void PININT0_IRQHandler(void)
 #ifdef DEBUG
     spin(2);
 #endif
+}
+
+void WKT_IRQHandler(void)
+{
+    static uint32_t time = 0;
+#define ALARMFLAG 1
+    LPC_WKT->CTRL |= (1 << ALARMFLAG);
+    LPC_WKT->COUNT = 10 * MILLIS;
+#define SAMPLE_PERIOD_S 16
+    if (++time % SAMPLE_PERIOD_S == 0) {
+        htu21d_measure_temp();
+#ifndef DEBUG
+        spin(1); /* needed for proper i2c operation */
+#endif
+        htu21d_measure_humid();
+        led_blink();
+    }
 }
 
 int main(void)
@@ -275,7 +276,6 @@ int main(void)
     htu21d_soft_reset();
     spin(100);
     htu21d_read_user();
-    sleep(MILLIS);
     while (1) {
         printf("[sys] loop #%d\n", ++i);
 #ifdef DEBUG

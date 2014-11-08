@@ -4,43 +4,49 @@
 #include <stdio.h>
 #include "uart.h"
 
-#define LED_PIN 0
-
 #ifndef DEBUG
 #define printf(...)
 #endif
+
+enum NVIC_priorities {
+    PRIO_SYSTICK,
+    PRIO_HIGH,
+    PRIO_MEDIUM,
+    PRIO_LOW
+};
 
 static struct {
     I2C_HANDLE_T *handle;
     uint32_t mem[24];
 } i2c;
 
-volatile uint32_t msTicks;
+volatile uint32_t time, mtime;
+
+static void systick_init(void)
+{
+    /* 1000Hz */
+    SysTick_Config(__SYSTEM_CLOCK/1000-1);
+    NVIC_SetPriority(SysTick_IRQn, PRIO_SYSTICK);
+}
 
 void SysTick_Handler(void)
 {
-    ++msTicks;
+    ++mtime;
 }
 
-static void wait(uint32_t ms)
+static void spin(uint32_t ms)
 {
-    uint32_t now = msTicks;
-    while ((msTicks-now) < ms);
-}
-
-void WKT_IRQHandler(void)
-{
-#define ALARMFLAG 1
-    LPC_WKT->CTRL |= (1 << ALARMFLAG);
+    uint32_t stop = mtime + ms;
+    while (mtime != stop);
 }
 
 static void wkt_init(void)
 {
 #define WKT 9
     LPC_SYSCON->SYSAHBCLKCTRL |= (1 << WKT);
-#define WKT_IRQ 15
-    NVIC_EnableIRQ(WKT_IRQ);
-    LPC_SYSCON->STARTERP1 |= (1 << WKT_IRQ);
+    NVIC_EnableIRQ(WKT_IRQn);
+    NVIC_SetPriority(WKT_IRQn, PRIO_LOW);
+    LPC_SYSCON->STARTERP1 |= (1 << WKT_IRQn);
     /* use 10kHz low-power oscillator for wkt */
 #define LPOSCEN 2
     LPC_PMU->DPDCTRL |= (1 << LPOSCEN);
@@ -52,11 +58,11 @@ static void sleep(uint32_t ms)
 {
     LPC_SYSCON->PDAWAKECFG = LPC_SYSCON->PDRUNCFG;
     LPC_WKT->COUNT = 10 * ms;
+#define SLEEPONEXIT 1
 #define SLEEPDEEP 2
-    SCB->SCR |= (1 << SLEEPDEEP);
+    SCB->SCR |= (1 << SLEEPONEXIT) | (1 << SLEEPDEEP);
 #define POWER_DOWN 0x02
     LPC_PMU->PCON = POWER_DOWN;
-    __WFI();
 }
 
 static void switch_init(void)
@@ -76,13 +82,9 @@ static void switch_init(void)
     LPC_SWM->PINASSIGN8 = 0xFF03FF0AUL;
 }
 
-static void clk_init(void)
-{
-    SysTick_Config(__SYSTEM_CLOCK/1000-1);   // 1000 Hz
-}
-
 static void led_init(void)
 {
+#define LED_PIN 0
     LPC_GPIO_PORT->DIR0 |= (1 << LED_PIN);
 #define MODE1 4
     LPC_IOCON->PIO0_0 &= ~(1 << MODE1);
@@ -90,10 +92,9 @@ static void led_init(void)
 
 static void led_blink(void)
 {
-    LPC_GPIO_PORT->NOT0 = 1 << LED_PIN;
-    sleep(100);
-    LPC_GPIO_PORT->NOT0 = 1 << LED_PIN;
-    sleep(5000);
+    LPC_GPIO_PORT->SET0 = 1 << LED_PIN;
+    spin(10);
+    LPC_GPIO_PORT->CLR0 = 1 << LED_PIN;
 } 
 
 static void clkout_init(void)
@@ -213,33 +214,74 @@ static void htu21d_measure_humid()
     }
 }
 
+static void ekmb_init()
+{
+    /* disable pull-up */
+#define MODE1 4
+    LPC_IOCON->PIO0_15 &= ~(1 << MODE1);
+#define EKMB_PIN 15
+    LPC_SYSCON->PINTSEL[0] = EKMB_PIN;
+    NVIC_EnableIRQ(PININT0_IRQn);
+    NVIC_SetPriority(PININT0_IRQn, PRIO_HIGH);
+    /* wake-up from power-down  */
+#define PINT0 0
+    LPC_SYSCON->STARTERP0 |= (1 << PINT0);
+    /* enable rising edge int */
+    LPC_PIN_INT->SIENR |= (1 << PINT0);
+} 
+
+void WKT_IRQHandler(void)
+{
+#define ALARMFLAG 1
+    LPC_WKT->CTRL |= (1 << ALARMFLAG);
+#define MILLIS 5000
+    LPC_WKT->COUNT = 10 * MILLIS;
+    htu21d_measure_temp();
+#ifndef DEBUG
+    spin(1); /* needed for proper i2c operation */
+#endif
+    htu21d_measure_humid();
+    led_blink();
+}
+
+void PININT0_IRQHandler(void)
+{
+    /* clear rising edge */
+    LPC_PIN_INT->IST |= (1 << PINT0);
+    printf("[ekmb] int!\n");
+#ifdef DEBUG
+    spin(2);
+#endif
+}
+
 int main(void)
 {
+    int i = 0;
+    __disable_irq();
     switch_init();
-    clk_init();
+    systick_init();
     clkout_init();
 #ifdef DEBUG
     uart_init();
 #endif
-    printf("\n--- kube start ---\n");
+    printf("\n--- kube boot ---\n");
     printf("[sys] clk: %uHz\n", (unsigned int)__SYSTEM_CLOCK);
     i2c_init();
     led_init();
     wkt_init();
+    ekmb_init();
+    __enable_irq();
 
     htu21d_soft_reset();
-    sleep(100);
+    spin(100);
     htu21d_read_user();
+    sleep(MILLIS);
     while (1) {
-        htu21d_measure_temp();
-#ifndef DEBUG
-        wait(1); /* needed for proper i2c operation */
-#endif
-        htu21d_measure_humid();
+        printf("[sys] loop #%d\n", ++i);
 #ifdef DEBUG
-        wait(2); /* make sure UART tx has finished */
+        spin(2);
 #endif
-        led_blink();
+        __WFI();
     }
     return 0;
 }

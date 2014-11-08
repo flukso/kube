@@ -232,18 +232,22 @@ void PININT0_IRQHandler(void)
 {
     /* clear rising edge */
     LPC_PIN_INT->IST |= (1 << PINT0);
-    printf("[ekmb] int!\n");
-#ifdef DEBUG
-    spin(2);
-#endif
+    LPC_PMU->GPREG0 += 1;
 }
 
 void WKT_IRQHandler(void)
 {
-    static uint32_t time = 0;
+    static uint32_t time = 0, counter = 0;
 #define ALARMFLAG 1
     LPC_WKT->CTRL |= (1 << ALARMFLAG);
     LPC_WKT->COUNT = 10 * MILLIS;
+    if (LPC_PMU->GPREG0 != counter) {
+        counter = LPC_PMU->GPREG0;
+        printf("[ekmb] counter: %u\n", (unsigned int)LPC_PMU->GPREG0);
+#ifdef DEBUG
+        spin(1);
+#endif
+    }
 #define SAMPLE_PERIOD_S 16
     if (++time % SAMPLE_PERIOD_S == 0) {
         htu21d_measure_temp();

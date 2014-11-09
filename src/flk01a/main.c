@@ -8,12 +8,16 @@
 #define printf(...)
 #endif
 
+#include "config.h"
+
 enum NVIC_priorities {
     PRIO_SYSTICK,
     PRIO_HIGH,
     PRIO_MEDIUM,
     PRIO_LOW
 };
+
+static struct config_s cfg;
 
 static struct {
     I2C_HANDLE_T *handle;
@@ -249,7 +253,7 @@ void WKT_IRQHandler(void)
     LPC_WKT->COUNT = 10 * MILLIS;
     if (LPC_PMU->GPREG0 != counter) {
         counter = LPC_PMU->GPREG0;
-        printf("[ekmb] counter: %u\n", (unsigned int)LPC_PMU->GPREG0);
+        printf("[ekmb] cntr: %u\n", (unsigned int)LPC_PMU->GPREG0);
 #ifdef DEBUG
         led_blink();
 #endif
@@ -277,6 +281,7 @@ int main(void)
 #endif
     printf("\n--- kube boot ---\n");
     printf("[sys] clk: %uHz\n", (unsigned int)__SYSTEM_CLOCK);
+    config_load(&cfg);
     i2c_init();
     led_init();
     ekmb_init();

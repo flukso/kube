@@ -3,6 +3,8 @@
 #include "rom_i2c_8xx.h"
 #include <stdio.h>
 #include "uart.h"
+#include "pkt.h"
+#include "rf69_12.h"
 
 #ifndef DEBUG
 #define printf(...)
@@ -141,6 +143,7 @@ static void i2c_init(void)
 #define HTU21D_CMD_HUMID_HOLD 0xE5
 #define HTU21D_CMD_READ_USER 0xE7
 #define HTU21D_CMD_SOFT_RESET 0xFE
+#define HTU21D_SAMPLE_ERR 0xFFFF
 
 static ErrorCode_t htu21d_cmd(uint8_t cmd, uint8_t rx_buffer[], size_t rx_count)
 {
@@ -196,28 +199,32 @@ static ErrorCode_t htu21d_measure(uint8_t cmd, uint16_t *sample)
     return err_code;
 }
 
-static void htu21d_measure_temp()
+static uint8_t htu21d_measure_temp(uint16_t *sample)
 {
-    uint16_t sample;
     double temp;
     ErrorCode_t err_code;
-    err_code = htu21d_measure(HTU21D_CMD_TEMP_HOLD, &sample);
+    err_code = htu21d_measure(HTU21D_CMD_TEMP_HOLD, sample);
     if (err_code == LPC_OK) {
-        temp = -46.85 + 175.72 * ((double)sample / 65536);
+        temp = -46.85 + 175.72 * ((double) *sample / 65536);
         printf("[temp] %dmC\n", (int)(1000 * temp));
+        return 0;
     }
+    *sample = HTU21D_SAMPLE_ERR;
+    return 1;
 }
 
-static void htu21d_measure_humid()
+static uint8_t htu21d_measure_humid(uint16_t *sample)
 {
-    uint16_t sample;
     double humid;
     ErrorCode_t err_code;
-    err_code = htu21d_measure(HTU21D_CMD_HUMID_HOLD, &sample);
+    err_code = htu21d_measure(HTU21D_CMD_HUMID_HOLD, sample);
     if (err_code == LPC_OK) {
-        humid = -6 + 125 * ((double)sample / 65536);
+        humid = -6 + 125 * ((double) *sample / 65536);
         printf("[humid] %dpm\n", (int)(10 * humid));
+        return 0;
     }
+    *sample = HTU21D_SAMPLE_ERR;
+    return 1;
 }
 
 static void ekmb_init()
@@ -247,24 +254,36 @@ void PININT0_IRQHandler(void)
 
 void WKT_IRQHandler(void)
 {
-    static uint32_t time = 0, counter = 0;
+    static uint32_t time = 0;
+    static struct pkt_counter_s pkt_counter = {
+        .cntr = 0
+    };
+    static struct pkt_gauge_s pkt_gauge = {
+        .padding = 0
+    };
 #define ALARMFLAG 1
     LPC_WKT->CTRL |= (1 << ALARMFLAG);
     LPC_WKT->COUNT = 10 * MILLIS;
-    if (LPC_PMU->GPREG0 != counter) {
-        counter = LPC_PMU->GPREG0;
-        printf("[ekmb] cntr: %u\n", (unsigned int)LPC_PMU->GPREG0);
+
+    if (LPC_PMU->GPREG0 != pkt_counter.cntr) {
+        pkt_counter.cntr = LPC_PMU->GPREG0;
+        printf("[ekmb] cntr: %u\n", (unsigned int)pkt_counter.cntr);
+        rf12_sendNow(0, &pkt_counter, sizeof(pkt_counter));
+        rf12_sendWait(0);
 #ifdef DEBUG
         led_blink();
 #endif
     }
+
 #define SAMPLE_PERIOD_S 16
     if (++time % SAMPLE_PERIOD_S == 0) {
-        htu21d_measure_temp();
+        pkt_gauge.temp_err = htu21d_measure_temp(&pkt_gauge.temp);
 #ifndef DEBUG
         spin(1); /* needed for proper i2c operation */
 #endif
-        htu21d_measure_humid();
+        pkt_gauge.humid_err = htu21d_measure_humid(&pkt_gauge.humid);
+        rf12_sendNow(0, &pkt_gauge, sizeof(pkt_gauge) - 1); /* force to 5 bytes */
+        rf12_sendWait(0);
         led_blink();
     }
 }
@@ -285,6 +304,7 @@ int main(void)
     i2c_init();
     led_init();
     ekmb_init();
+    rf12_initialize(cfg.nid, RF12_868MHZ, cfg.grp);
     __enable_irq();
     htu21d_soft_reset();
     spin(100);

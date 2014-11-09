@@ -36,8 +36,12 @@ void SysTick_Handler(void)
 
 static void spin(uint32_t ms)
 {
-    uint32_t stop = mtime + ms;
-    while (mtime != stop);
+    uint32_t start = mtime;
+    uint32_t stop = start + ms;
+    if (stop < start) { /* overflow */
+        while (mtime > start);
+    }
+    while (mtime < stop);
 }
 
 static void wkt_init(void)

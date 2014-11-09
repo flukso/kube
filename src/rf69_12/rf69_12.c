@@ -177,3 +177,7 @@ void rf12_sendWait(uint8_t mode) {
   while (rxstate < TXIDLE)
     rf12_recvDone();
 }
+
+void rf12_sleep(void) {
+  setMode(RF_OPMODE_SLEEP);
+}

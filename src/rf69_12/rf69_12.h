@@ -60,3 +60,5 @@ void rf12_sendNow(uint8_t hdr, const void* ptr, uint8_t len);
 /// Wait for send to finish.
 /// @param mode sleep mode 0=none, 1=idle, 2=standby, 3=powerdown.
 void rf12_sendWait(uint8_t mode);
+
+void rf12_sleep(void);

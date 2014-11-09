@@ -249,6 +249,7 @@ static void bootLoader () {
   for (int backOff = 0; /*forever*/; ++backOff) {
     bootLoaderLogic();
     if (appIsValid())
+      rf12_sleep();
       break;
     sleep(100L << (backOff & 0x0F));
   }

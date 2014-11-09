@@ -46,12 +46,21 @@ static void configurePins (void) {
   /* UART0_RXD 8  */
   LPC_SWM->PINASSIGN0 = 0xffff0809UL;
 #endif
+#define MODE1 4
   /* SPI0_SCK 7 */
+  LPC_IOCON->PIO0_7 &= ~(1 << MODE1);
   LPC_SWM->PINASSIGN3 = 0x07ffffffUL;
   /* SPI0_MOSI 1 */
+  LPC_IOCON->PIO0_1 &= ~(1 << MODE1);
   /* SPI0_MISO 13 */
+  LPC_IOCON->PIO0_13 &= ~(1 << MODE1);
   /* SPI0_SSEL 14 */
+  LPC_IOCON->PIO0_14 &= ~(1 << MODE1);
   LPC_SWM->PINASSIGN4 = 0xff0e0d01UL;
+  /* IRQ 17 */
+  LPC_IOCON->PIO0_17 &= ~(1 << MODE1);
+  /* EKMB INT */
+  LPC_IOCON->PIO0_15 &= ~(1 << MODE1);
 }
 
 static void launchApp() {

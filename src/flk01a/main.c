@@ -224,9 +224,11 @@ static void ekmb_init()
     /* wake-up from power-down  */
 #define PINT0 0
     LPC_SYSCON->STARTERP0 |= (1 << PINT0);
+     /* clear rising edge */
+    LPC_PIN_INT->IST |= (1 << PINT0);
     /* enable rising edge int */
     LPC_PIN_INT->SIENR |= (1 << PINT0);
-} 
+}
 
 void PININT0_IRQHandler(void)
 {
@@ -245,7 +247,7 @@ void WKT_IRQHandler(void)
         counter = LPC_PMU->GPREG0;
         printf("[ekmb] counter: %u\n", (unsigned int)LPC_PMU->GPREG0);
 #ifdef DEBUG
-        spin(1);
+        led_blink();
 #endif
     }
 #define SAMPLE_PERIOD_S 16
@@ -273,13 +275,18 @@ int main(void)
     printf("[sys] clk: %uHz\n", (unsigned int)__SYSTEM_CLOCK);
     i2c_init();
     led_init();
-    wkt_init();
     ekmb_init();
     __enable_irq();
-
     htu21d_soft_reset();
     spin(100);
     htu21d_read_user();
+#ifdef DEBUG
+    spin(2);
+#endif
+    __disable_irq();
+    wkt_init();
+    __enable_irq();
+ 
     while (1) {
         printf("[sys] loop #%d\n", ++i);
 #ifdef DEBUG

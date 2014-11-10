@@ -275,7 +275,7 @@ void WKT_IRQHandler(void)
 #endif
     }
 
-#define SAMPLE_PERIOD_S 16
+#define SAMPLE_PERIOD_S 256
     if (++time % SAMPLE_PERIOD_S == 0) {
         pkt_gauge.temp_err = htu21d_measure_temp(&pkt_gauge.temp);
 #ifndef DEBUG
@@ -285,6 +285,15 @@ void WKT_IRQHandler(void)
         rf12_sendNow(0, &pkt_gauge, sizeof(pkt_gauge) - 1); /* force to 5 bytes */
         rf12_sendWait(0);
         led_blink();
+    }
+
+#define RESET_PERIOD_S 65536UL
+    if (time % RESET_PERIOD_S == 0) {
+        printf("[sys] resetting...\n");
+#ifdef DEBUG
+        spin(2);
+#endif
+        NVIC_SystemReset();
     }
 }
 

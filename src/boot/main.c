@@ -61,6 +61,11 @@ static void configurePins (void) {
   LPC_IOCON->PIO0_17 &= ~(1 << MODE1);
   /* EKMB INT */
   LPC_IOCON->PIO0_15 &= ~(1 << MODE1);
+  /* LED 0 */
+#define LED_PIN 0
+    LPC_GPIO_PORT->DIR0 |= (1 << LED_PIN);
+#define MODE1 4
+    LPC_IOCON->PIO0_0 &= ~(1 << MODE1);
 }
 
 static void launchApp() {

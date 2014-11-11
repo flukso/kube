@@ -291,7 +291,7 @@ void WKT_IRQHandler(void)
 #endif
     }
 
-#define SAMPLE_PERIOD_S 256
+#define SAMPLE_PERIOD_S 64
     if (++time % SAMPLE_PERIOD_S == 0) {
         pkt_gauge.temp_err = htu21d_measure_temp(&pkt_gauge.temp);
 #ifndef DEBUG

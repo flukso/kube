@@ -1,5 +1,6 @@
 #include "LPC8xx.h"
 #include "romapi_8xx.h"
+#include "rom_pwr_8xx.h"
 #include "rom_i2c_8xx.h"
 #include <stdio.h>
 #include "uart.h"
@@ -108,6 +109,14 @@ static void led_blink(void)
     spin(10);
     LPC_GPIO_PORT->CLR0 = 1 << LED_PIN;
 } 
+
+static void pwr_init(void)
+{
+    uint32_t cmd[] = {12, PWR_LOW_CURRENT, 12};
+    uint32_t result[1];
+    LPC_PWRD_API->set_power(cmd, result);
+    printf("[pwr] result[0]: 0x%02X\n", (unsigned int)result[0]);
+}
 
 static void clkout_init(void)
 {
@@ -307,7 +316,6 @@ int main(void)
     __disable_irq();
     switch_init();
     systick_init();
-    clkout_init();
 #ifdef DEBUG
     clkout_init();
     uart_init();
@@ -315,6 +323,7 @@ int main(void)
     printf("\n--- kube boot ---\n");
     printf("[sys] clk: %uHz\n", (unsigned int)__SYSTEM_CLOCK);
     config_load(&cfg);
+    pwr_init();
     i2c_init();
     led_init();
     ekmb_init();

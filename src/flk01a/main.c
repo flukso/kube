@@ -138,6 +138,9 @@ static void i2c_init(void)
 {
 #define I2C 5
     LPC_SYSCON->SYSAHBCLKCTRL |= (1 << I2C);
+#define I2C_RST_N 6
+    LPC_SYSCON->PRESETCTRL &= ~(1 << I2C_RST_N);
+    LPC_SYSCON->PRESETCTRL |= (1 << I2C_RST_N);
     ErrorCode_t err_code;
     printf("[i2c] firmware: v%u\n", (unsigned int)LPC_I2CD_API->i2c_get_firmware_version());
     printf("[i2c] memsize: %uB\n", (unsigned int)LPC_I2CD_API->i2c_get_mem_size());

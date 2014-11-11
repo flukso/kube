@@ -146,7 +146,7 @@ static void i2c_init(void)
     printf("[i2c] clk: %uHz\n", (unsigned int)I2C_CLOCKRATE);
     err_code = LPC_I2CD_API->i2c_set_bitrate(i2c.handle, __SYSTEM_CLOCK, I2C_CLOCKRATE);
     printf("[i2c] set_bitrate err: %x\n", err_code);
-#define I2C_TIMEOUT 100UL
+#define I2C_TIMEOUT 1000UL
     err_code = LPC_I2CD_API->i2c_set_timeout(i2c.handle, I2C_TIMEOUT);
     printf("[i2c] set_timeout stat: %x\n", err_code);
 }

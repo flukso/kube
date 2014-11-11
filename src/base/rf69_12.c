@@ -176,6 +176,14 @@ void rf12_sendNow(uint8_t hdr, const void* ptr, uint8_t len) {
 void rf12_sendWait(uint8_t mode) {
   while (rxstate < TXIDLE)
     rf12_recvDone();
+  switch (mode) {
+  case 2:
+    setMode(RF_OPMODE_STANDBY);
+    break;
+  case 3:
+    setMode(RF_OPMODE_SLEEP);
+    break;
+  }
 }
 
 void rf12_sleep(void) {

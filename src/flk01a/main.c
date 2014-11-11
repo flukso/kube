@@ -269,7 +269,7 @@ void WKT_IRQHandler(void)
         pkt_counter.cntr = LPC_PMU->GPREG0;
         printf("[ekmb] cntr: %u\n", (unsigned int)pkt_counter.cntr);
         rf12_sendNow(0, &pkt_counter, sizeof(pkt_counter));
-        rf12_sendWait(0);
+        rf12_sendWait(3);
 #ifdef DEBUG
         led_blink();
 #endif
@@ -283,7 +283,7 @@ void WKT_IRQHandler(void)
 #endif
         pkt_gauge.humid_err = htu21d_measure_humid(&pkt_gauge.humid);
         rf12_sendNow(0, &pkt_gauge, sizeof(pkt_gauge) - 1); /* force to 5 bytes */
-        rf12_sendWait(0);
+        rf12_sendWait(3);
         led_blink();
     }
 

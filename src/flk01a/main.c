@@ -82,12 +82,16 @@ static void switch_init(void)
     LPC_SWM->PINASSIGN0 = 0xFFFF0809UL;
     /* I2C0_SDA 11 */
     LPC_SWM->PINASSIGN7 = 0x0BFFFFFFUL;
+    /* I2C0_SCL 10 */
+    /* CLKOUT 3 */
+#ifdef DEBUG
     /* disable SWCLK on PIO0_3 */
 #define SWCLK_EN 2;
     LPC_SWM->PINENABLE0 |= 1 << SWCLK_EN;
-    /* I2C0_SCL 10 */
-    /* CLKOUT 3 */
     LPC_SWM->PINASSIGN8 = 0xFF03FF0AUL;
+#else
+    LPC_SWM->PINASSIGN8 = 0xFFFFFF0AUL;
+#endif
 }
 
 static void led_init(void)
@@ -305,6 +309,7 @@ int main(void)
     systick_init();
     clkout_init();
 #ifdef DEBUG
+    clkout_init();
     uart_init();
 #endif
     printf("\n--- kube boot ---\n");

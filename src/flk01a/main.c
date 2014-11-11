@@ -331,6 +331,7 @@ int main(void)
     led_init();
     ekmb_init();
     rf12_initialize(cfg.nid, RF12_868MHZ, cfg.grp);
+    rf12_sleep();
     __enable_irq();
     htu21d_soft_reset();
     spin(100);

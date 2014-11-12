@@ -292,7 +292,7 @@ void WKT_IRQHandler(void)
     }
 
 #define SAMPLE_PERIOD_S 64
-    if (++time % SAMPLE_PERIOD_S == 0) {
+    if (time % SAMPLE_PERIOD_S == 0) {
         pkt_gauge.temp_err = htu21d_measure_temp(&pkt_gauge.temp);
 #ifndef DEBUG
         spin(1); /* needed for proper i2c operation */
@@ -304,13 +304,15 @@ void WKT_IRQHandler(void)
     }
 
 #define RESET_PERIOD_S 65536UL
-    if (time % RESET_PERIOD_S == 0) {
+    if (time == RESET_PERIOD_S) {
         printf("[sys] resetting...\n");
 #ifdef DEBUG
         spin(2);
 #endif
         NVIC_SystemReset();
     }
+
+    time++;
 }
 
 int main(void)

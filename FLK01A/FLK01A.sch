@@ -6876,7 +6876,7 @@ Standard 4-pin 0.1" header. Use with straight break away headers (SKU : PRT-0011
 <part name="GND16" library="SparkFun-Aesthetics" deviceset="GND" device=""/>
 <part name="U3" library="flukso" deviceset="HTU21D" device="SMD"/>
 <part name="D1" library="SparkFun-LED" deviceset="LED-GREEN" device="0603" value="GREEN"/>
-<part name="R9" library="SparkFun-Passives" deviceset="RESISTOR" device="0402-RES" value="10k"/>
+<part name="R9" library="SparkFun-Passives" deviceset="RESISTOR" device="0402-RES" value="1k"/>
 <part name="GND17" library="SparkFun-Aesthetics" deviceset="GND" device=""/>
 <part name="J3" library="SparkFun-Connectors" deviceset="M04" device="1X04_NO_SILK"/>
 <part name="GND18" library="SparkFun-Aesthetics" deviceset="GND" device=""/>
@@ -7084,7 +7084,7 @@ Standard 4-pin 0.1" header. Use with straight break away headers (SKU : PRT-0011
 <pinref part="GND18" gate="1" pin="GND"/>
 </segment>
 </net>
-<net name="PIO0_17" class="0">
+<net name="RFM_IRQ" class="0">
 <segment>
 <pinref part="U1" gate="A" pin="PIO0_17"/>
 <wire x1="142.24" y1="152.4" x2="139.7" y2="152.4" width="0.1524" layer="91"/>
@@ -7096,7 +7096,7 @@ Standard 4-pin 0.1" header. Use with straight break away headers (SKU : PRT-0011
 <label x="25.4" y="142.24" size="1.27" layer="95" xref="yes"/>
 </segment>
 </net>
-<net name="PIO0_13" class="0">
+<net name="RFM_SDO" class="0">
 <segment>
 <pinref part="U1" gate="A" pin="PIO0_13"/>
 <wire x1="142.24" y1="149.86" x2="139.7" y2="149.86" width="0.1524" layer="91"/>
@@ -7108,7 +7108,7 @@ Standard 4-pin 0.1" header. Use with straight break away headers (SKU : PRT-0011
 <label x="25.4" y="144.78" size="1.27" layer="95" xref="yes"/>
 </segment>
 </net>
-<net name="PIO0_12" class="0">
+<net name="!ISP_EN!" class="0">
 <segment>
 <pinref part="U1" gate="A" pin="PIO0_12"/>
 <wire x1="142.24" y1="147.32" x2="139.7" y2="147.32" width="0.1524" layer="91"/>
@@ -7120,7 +7120,7 @@ Standard 4-pin 0.1" header. Use with straight break away headers (SKU : PRT-0011
 <label x="25.4" y="147.32" size="1.27" layer="95" xref="yes"/>
 </segment>
 </net>
-<net name="PIO0_5" class="0">
+<net name="!RESET!" class="0">
 <segment>
 <pinref part="U1" gate="A" pin="!RESET!/PIO0_5"/>
 <wire x1="142.24" y1="144.78" x2="124.46" y2="144.78" width="0.1524" layer="91"/>
@@ -7136,7 +7136,7 @@ Standard 4-pin 0.1" header. Use with straight break away headers (SKU : PRT-0011
 <label x="25.4" y="149.86" size="1.27" layer="95" xref="yes"/>
 </segment>
 </net>
-<net name="PIO0_4" class="0">
+<net name="ISP_TXD" class="0">
 <segment>
 <pinref part="U1" gate="A" pin="PIO0_4/WAKEUP/!TRST!"/>
 <wire x1="142.24" y1="142.24" x2="111.76" y2="142.24" width="0.1524" layer="91"/>
@@ -7162,7 +7162,7 @@ Standard 4-pin 0.1" header. Use with straight break away headers (SKU : PRT-0011
 <label x="236.22" y="76.2" size="1.27" layer="95" xref="yes"/>
 </segment>
 </net>
-<net name="PIO0_3" class="0">
+<net name="SWCLK" class="0">
 <segment>
 <pinref part="U1" gate="A" pin="SWCLK/PIO0_3/TCK"/>
 <wire x1="142.24" y1="139.7" x2="139.7" y2="139.7" width="0.1524" layer="91"/>
@@ -7174,7 +7174,7 @@ Standard 4-pin 0.1" header. Use with straight break away headers (SKU : PRT-0011
 <label x="25.4" y="154.94" size="1.27" layer="95" xref="yes"/>
 </segment>
 </net>
-<net name="PIO0_2" class="0">
+<net name="SWDIO" class="0">
 <segment>
 <pinref part="U1" gate="A" pin="SWDIO/PIO0_2/TMS"/>
 <wire x1="142.24" y1="137.16" x2="139.7" y2="137.16" width="0.1524" layer="91"/>
@@ -7285,7 +7285,7 @@ Standard 4-pin 0.1" header. Use with straight break away headers (SKU : PRT-0011
 <label x="132.08" y="25.4" size="1.27" layer="95" xref="yes"/>
 </segment>
 </net>
-<net name="PIO0_14" class="0">
+<net name="RFM_SEL" class="0">
 <segment>
 <pinref part="U1" gate="A" pin="PIO0_14"/>
 <wire x1="208.28" y1="144.78" x2="208.28" y2="149.86" width="0.1524" layer="91"/>
@@ -7298,7 +7298,7 @@ Standard 4-pin 0.1" header. Use with straight break away headers (SKU : PRT-0011
 <label x="63.5" y="165.1" size="1.27" layer="95" xref="yes"/>
 </segment>
 </net>
-<net name="PIO0_0" class="0">
+<net name="ISP_RXD" class="0">
 <segment>
 <pinref part="U1" gate="A" pin="PIO0_0/ACMP_I1/TDO"/>
 <wire x1="208.28" y1="142.24" x2="210.82" y2="142.24" width="0.1524" layer="91"/>
@@ -7330,7 +7330,7 @@ Standard 4-pin 0.1" header. Use with straight break away headers (SKU : PRT-0011
 <label x="63.5" y="160.02" size="1.27" layer="95" xref="yes"/>
 </segment>
 </net>
-<net name="PIO0_7" class="0">
+<net name="RFM_SCK" class="0">
 <segment>
 <pinref part="U1" gate="A" pin="PIO0_7"/>
 <wire x1="208.28" y1="137.16" x2="210.82" y2="137.16" width="0.1524" layer="91"/>
@@ -7342,7 +7342,7 @@ Standard 4-pin 0.1" header. Use with straight break away headers (SKU : PRT-0011
 <label x="63.5" y="157.48" size="1.27" layer="95" xref="yes"/>
 </segment>
 </net>
-<net name="PIO0_9" class="0">
+<net name="QSPY_TXD" class="0">
 <segment>
 <pinref part="U1" gate="A" pin="PIO0_9/XTALOUT"/>
 <wire x1="208.28" y1="127" x2="210.82" y2="127" width="0.1524" layer="91"/>
@@ -7359,7 +7359,7 @@ Standard 4-pin 0.1" header. Use with straight break away headers (SKU : PRT-0011
 <label x="63.5" y="147.32" size="1.27" layer="95" xref="yes"/>
 </segment>
 </net>
-<net name="PIO0_1" class="0">
+<net name="RFM_SDI" class="0">
 <segment>
 <pinref part="U1" gate="A" pin="PIO0_1/ACMP_I2/CLKIN/TDI"/>
 <wire x1="208.28" y1="124.46" x2="210.82" y2="124.46" width="0.1524" layer="91"/>
@@ -7486,7 +7486,7 @@ Standard 4-pin 0.1" header. Use with straight break away headers (SKU : PRT-0011
 <pinref part="SUPPLY9" gate="G$1" pin="3.3V"/>
 </segment>
 </net>
-<net name="PIO0_8" class="0">
+<net name="QSPY_RXD" class="0">
 <segment>
 <pinref part="U1" gate="A" pin="PIO0_8/XTALIN"/>
 <wire x1="208.28" y1="129.54" x2="208.28" y2="132.08" width="0.1524" layer="91"/>

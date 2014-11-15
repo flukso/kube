@@ -73,6 +73,8 @@
 <layer number="121" name="_tsilk" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="122" name="_bsilk" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="125" name="_tNames" color="7" fill="1" visible="no" active="yes"/>
+<layer number="131" name="prix" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="132" name="test" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="144" name="Drill_legend" color="7" fill="1" visible="no" active="yes"/>
 <layer number="151" name="HeatSink" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="199" name="Contour" color="7" fill="1" visible="yes" active="yes"/>
@@ -6789,7 +6791,6 @@ Standard 4-pin 0.1" header. Use with straight break away headers (SKU : PRT-0011
 <part name="SUPPLY6" library="SparkFun-Aesthetics" deviceset="3.3V" device=""/>
 <part name="GND9" library="SparkFun-Aesthetics" deviceset="GND" device=""/>
 <part name="C4" library="flukso" deviceset="CAP" device="0402-CAP" value="100nF"/>
-<part name="C5" library="flukso" deviceset="CAP" device="0603-CAP" value="4.7u"/>
 <part name="GND10" library="SparkFun-Aesthetics" deviceset="GND" device=""/>
 <part name="R8" library="SparkFun-Passives" deviceset="RESISTOR" device="0402-RES" value="100k"/>
 <part name="GND11" library="SparkFun-Aesthetics" deviceset="GND" device=""/>
@@ -6813,6 +6814,7 @@ Standard 4-pin 0.1" header. Use with straight break away headers (SKU : PRT-0011
 <part name="J3" library="SparkFun-Connectors" deviceset="M04" device="1X04_NO_SILK"/>
 <part name="GND18" library="SparkFun-Aesthetics" deviceset="GND" device=""/>
 <part name="SUPPLY9" library="SparkFun-Aesthetics" deviceset="3.3V" device=""/>
+<part name="C5" library="flukso" deviceset="CAP" device="0805" value="4.7uF"/>
 </parts>
 <sheets>
 <sheet>
@@ -6862,7 +6864,6 @@ Standard 4-pin 0.1" header. Use with straight break away headers (SKU : PRT-0011
 <instance part="SUPPLY6" gate="G$1" x="187.96" y="83.82"/>
 <instance part="GND9" gate="1" x="187.96" y="60.96"/>
 <instance part="C4" gate="G$1" x="182.88" y="71.12" rot="MR0"/>
-<instance part="C5" gate="G$1" x="170.18" y="71.12" rot="MR0"/>
 <instance part="GND10" gate="1" x="215.9" y="60.96"/>
 <instance part="R8" gate="G$1" x="223.52" y="68.58" rot="R90"/>
 <instance part="GND11" gate="1" x="223.52" y="60.96"/>
@@ -6886,6 +6887,7 @@ Standard 4-pin 0.1" header. Use with straight break away headers (SKU : PRT-0011
 <instance part="J3" gate="G$1" x="17.78" y="119.38"/>
 <instance part="GND18" gate="1" x="25.4" y="114.3"/>
 <instance part="SUPPLY9" gate="G$1" x="25.4" y="124.46"/>
+<instance part="C5" gate="G$1" x="170.18" y="71.12" rot="MR0"/>
 </instances>
 <busses>
 </busses>
@@ -6953,10 +6955,10 @@ Standard 4-pin 0.1" header. Use with straight break away headers (SKU : PRT-0011
 <pinref part="C4" gate="G$1" pin="2"/>
 <wire x1="182.88" y1="68.58" x2="182.88" y2="66.04" width="0.1524" layer="91"/>
 <wire x1="182.88" y1="66.04" x2="187.96" y2="66.04" width="0.1524" layer="91"/>
-<pinref part="C5" gate="G$1" pin="2"/>
 <wire x1="170.18" y1="68.58" x2="170.18" y2="66.04" width="0.1524" layer="91"/>
 <wire x1="170.18" y1="66.04" x2="182.88" y2="66.04" width="0.1524" layer="91"/>
 <junction x="182.88" y="66.04"/>
+<pinref part="C5" gate="G$1" pin="2"/>
 </segment>
 <segment>
 <pinref part="U4" gate="G$1" pin="SA0"/>
@@ -7369,10 +7371,10 @@ Standard 4-pin 0.1" header. Use with straight break away headers (SKU : PRT-0011
 <wire x1="190.5" y1="78.74" x2="187.96" y2="78.74" width="0.1524" layer="91"/>
 <wire x1="187.96" y1="78.74" x2="187.96" y2="81.28" width="0.1524" layer="91"/>
 <junction x="187.96" y="81.28"/>
-<pinref part="C5" gate="G$1" pin="1"/>
 <wire x1="187.96" y1="78.74" x2="170.18" y2="78.74" width="0.1524" layer="91"/>
 <wire x1="170.18" y1="78.74" x2="170.18" y2="76.2" width="0.1524" layer="91"/>
 <junction x="187.96" y="78.74"/>
+<pinref part="C5" gate="G$1" pin="1"/>
 </segment>
 <segment>
 <pinref part="U5" gate="G$1" pin="VDD"/>

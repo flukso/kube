@@ -7090,6 +7090,7 @@ Standard 3.3V and 5V 150mA LDO voltage regulator in SOT-23 layout. Micrel part M
 <part name="GND10" library="sparkFun" deviceset="GND" device=""/>
 <part name="SJ4" library="SparkFun-Passives" deviceset="SOLDERJUMPER" device="NC"/>
 <part name="SUPPLY5" library="SparkFun-Aesthetics" deviceset="3.3V" device=""/>
+<part name="R10" library="SparkFun-Passives" deviceset="RESISTOR" device="0402-RES" value="100k"/>
 </parts>
 <sheets>
 <sheet>
@@ -7189,6 +7190,10 @@ Standard 3.3V and 5V 150mA LDO voltage regulator in SOT-23 layout. Micrel part M
 <attribute name="NAME" x="213.36" y="96.52" size="1.778" layer="95"/>
 </instance>
 <instance part="SUPPLY5" gate="G$1" x="223.52" y="96.52"/>
+<instance part="R10" gate="G$1" x="35.56" y="96.52" smashed="yes" rot="R90">
+<attribute name="NAME" x="34.0614" y="92.71" size="1.778" layer="95" rot="R90"/>
+<attribute name="VALUE" x="38.862" y="92.71" size="1.778" layer="96" rot="R90"/>
+</instance>
 </instances>
 <busses>
 </busses>
@@ -7269,6 +7274,10 @@ Standard 3.3V and 5V 150mA LDO voltage regulator in SOT-23 layout. Micrel part M
 <wire x1="48.26" y1="104.14" x2="58.42" y2="104.14" width="0.1524" layer="91"/>
 <wire x1="58.42" y1="104.14" x2="58.42" y2="101.6" width="0.1524" layer="91"/>
 <junction x="58.42" y="104.14"/>
+<pinref part="R10" gate="G$1" pin="2"/>
+<wire x1="48.26" y1="104.14" x2="35.56" y2="104.14" width="0.1524" layer="91"/>
+<wire x1="35.56" y1="104.14" x2="35.56" y2="101.6" width="0.1524" layer="91"/>
+<junction x="48.26" y="104.14"/>
 </segment>
 <segment>
 <pinref part="SJ3" gate="1" pin="2"/>
@@ -7376,9 +7385,11 @@ Standard 3.3V and 5V 150mA LDO voltage regulator in SOT-23 layout. Micrel part M
 <label x="154.94" y="160.02" size="1.27" layer="95" font="vector" xref="yes"/>
 </segment>
 <segment>
-<wire x1="48.26" y1="86.36" x2="45.72" y2="86.36" width="0.1524" layer="91"/>
-<label x="45.72" y="86.36" size="1.27" layer="95" font="vector" rot="R180" xref="yes"/>
+<wire x1="48.26" y1="86.36" x2="35.56" y2="86.36" width="0.1524" layer="91"/>
+<label x="35.56" y="86.36" size="1.27" layer="95" font="vector" rot="R180" xref="yes"/>
 <pinref part="U1" gate="G$1" pin="I"/>
+<pinref part="R10" gate="G$1" pin="1"/>
+<wire x1="35.56" y1="91.44" x2="35.56" y2="86.36" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="PIO0_13" class="0">

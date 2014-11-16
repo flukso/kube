@@ -51,6 +51,7 @@
 <layer number="53" name="tGND_GNDA" color="7" fill="9" visible="no" active="no"/>
 <layer number="54" name="bGND_GNDA" color="1" fill="9" visible="no" active="no"/>
 <layer number="56" name="wert" color="7" fill="1" visible="no" active="no"/>
+<layer number="57" name="tCAD" color="7" fill="1" visible="no" active="no"/>
 <layer number="91" name="Nets" color="2" fill="1" visible="yes" active="yes"/>
 <layer number="92" name="Busses" color="1" fill="1" visible="yes" active="yes"/>
 <layer number="93" name="Pins" color="2" fill="1" visible="no" active="yes"/>
@@ -59,6 +60,7 @@
 <layer number="96" name="Values" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="97" name="Info" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="98" name="Guide" color="6" fill="1" visible="yes" active="yes"/>
+<layer number="99" name="SpiceOrder" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="100" name="Muster" color="7" fill="1" visible="no" active="no"/>
 <layer number="101" name="Patch_Top" color="12" fill="4" visible="yes" active="yes"/>
 <layer number="102" name="Vscore" color="7" fill="1" visible="yes" active="yes"/>
@@ -69,12 +71,28 @@
 <layer number="107" name="Crop" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="108" name="tplace-old" color="10" fill="1" visible="yes" active="yes"/>
 <layer number="109" name="ref-old" color="11" fill="1" visible="yes" active="yes"/>
+<layer number="110" name="fp0" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="111" name="LPC17xx" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="112" name="tSilk" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="113" name="IDFDebug" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="116" name="Patch_BOT" color="9" fill="4" visible="yes" active="yes"/>
 <layer number="121" name="_tsilk" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="122" name="_bsilk" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="123" name="tTestmark" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="124" name="bTestmark" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="125" name="_tNames" color="7" fill="1" visible="no" active="yes"/>
+<layer number="126" name="_bNames" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="127" name="_tValues" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="128" name="_bValues" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="131" name="prix" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="132" name="test" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="144" name="Drill_legend" color="7" fill="1" visible="no" active="yes"/>
+<layer number="150" name="Notes" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="151" name="HeatSink" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="152" name="_bDocu" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="153" name="FabDoc1" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="154" name="FabDoc2" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="155" name="FabDoc3" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="199" name="Contour" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="200" name="200bmp" color="1" fill="10" visible="no" active="no"/>
 <layer number="201" name="201bmp" color="2" fill="1" visible="no" active="no"/>
@@ -101,6 +119,8 @@
 <layer number="222" name="222bmp" color="23" fill="1" visible="no" active="no"/>
 <layer number="223" name="223bmp" color="24" fill="1" visible="no" active="no"/>
 <layer number="224" name="224bmp" color="25" fill="1" visible="no" active="no"/>
+<layer number="248" name="Housing" color="7" fill="1" visible="yes" active="yes"/>
+<layer number="249" name="Edge" color="7" fill="1" visible="yes" active="yes"/>
 <layer number="250" name="Descript" color="3" fill="1" visible="no" active="no"/>
 <layer number="251" name="SMDround" color="12" fill="11" visible="no" active="no"/>
 <layer number="254" name="cooling" color="7" fill="1" visible="yes" active="yes"/>
@@ -4157,10 +4177,6 @@ DIN A4, landscape with extra doc field</description>
 <description>RFM12B radio module by HopeRF</description>
 <wire x1="-7.5" y1="-7" x2="7.5" y2="-7" width="0.127" layer="21"/>
 <wire x1="7.5" y1="7" x2="-7.5" y2="7" width="0.127" layer="21"/>
-<wire x1="-5.715" y1="3.81" x2="-1.27" y2="3.81" width="0.127" layer="21" curve="-180"/>
-<wire x1="-1.27" y1="-1.27" x2="-5.715" y2="-1.27" width="0.127" layer="21" curve="-196.260205"/>
-<wire x1="-5.715" y1="3.81" x2="-5.715" y2="-1.27" width="0.127" layer="21"/>
-<wire x1="-1.27" y1="3.81" x2="-1.27" y2="-1.27" width="0.127" layer="21"/>
 <smd name="ANT" x="8" y="-6" dx="2.54" dy="1.27" layer="1"/>
 <smd name="FFS" x="-8" y="2" dx="2.54" dy="1.27" layer="1"/>
 <smd name="GND1" x="8" y="-2" dx="2.54" dy="1.27" layer="1"/>
@@ -4181,6 +4197,14 @@ DIN A4, landscape with extra doc field</description>
 <text x="3.302" y="-2.286" size="1.016" layer="21" ratio="16">GND</text>
 <text x="-5.842" y="-6.35" size="1.016" layer="21" ratio="16">GND</text>
 <rectangle x1="-4.445" y1="-6.35" x2="4.445" y2="6.35" layer="43"/>
+<wire x1="-4.064" y1="2.286" x2="0.254" y2="2.286" width="0.127" layer="21"/>
+<wire x1="0.254" y1="2.286" x2="0.254" y2="-1.778" width="0.127" layer="21"/>
+<wire x1="0.254" y1="-1.778" x2="-4.064" y2="-1.778" width="0.127" layer="21"/>
+<wire x1="-4.064" y1="-1.778" x2="-4.064" y2="2.286" width="0.127" layer="21"/>
+<wire x1="1.778" y1="2.286" x2="1.778" y2="0.508" width="0.127" layer="21"/>
+<wire x1="1.778" y1="0.508" x2="3.048" y2="0.508" width="0.127" layer="21"/>
+<wire x1="3.048" y1="0.508" x2="3.048" y2="2.286" width="0.127" layer="21"/>
+<wire x1="3.048" y1="2.286" x2="1.778" y2="2.286" width="0.127" layer="21"/>
 </package>
 <package name="1X10">
 <wire x1="14.605" y1="1.27" x2="15.875" y2="1.27" width="0.2032" layer="21"/>

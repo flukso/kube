@@ -154,6 +154,24 @@ static void i2c_init(void)
     printf("[i2c] set_timeout stat: %x\n", err_code);
 }
 
+static void i2c_bus_clear(void)
+{
+    /* TODO increase bus speed to 10kHz */
+    /* free PIO0_10 from SCL */
+    LPC_SWM->PINASSIGN8 |= 0xFF;
+#define SCL_PIN 10
+    LPC_GPIO_PORT->DIR0 |= (1 << SCL_PIN);
+    for (int i = 0; i < 9; i++) {
+        LPC_GPIO_PORT->SET0 = (1 << SCL_PIN);
+        spin(1);
+        LPC_GPIO_PORT->CLR0 = (1 << SCL_PIN);
+        spin(1);
+    }
+    LPC_GPIO_PORT->DIR0 &= ~(1 << SCL_PIN);
+    /* re-assign SCL to PIO0_10 */
+    switch_init();
+}
+
 #define HTU21D_ADDRESS 0x40
 #define HTU21D_CMD_TEMP_HOLD 0xE3
 #define HTU21D_CMD_HUMID_HOLD 0xE5
@@ -300,6 +318,9 @@ void WKT_IRQHandler(void)
         pkt_gauge.humid_err = htu21d_measure_humid(&pkt_gauge.humid);
         rf12_sendNow(0, &pkt_gauge, sizeof(pkt_gauge) - 1); /* force to 5 bytes */
         rf12_sendWait(3);
+        if (pkt_gauge.temp_err || pkt_gauge.humid_err) {
+            i2c_bus_clear();
+        }
         led_blink();
     }
 
@@ -335,6 +356,7 @@ int main(void)
     rf12_initialize(cfg.nid, RF12_868MHZ, cfg.grp);
     rf12_sleep();
     __enable_irq();
+    i2c_bus_clear();
     htu21d_soft_reset();
     spin(100);
     htu21d_read_user();

@@ -134,6 +134,47 @@ static void uart_init(void)
     uart0Init(115200);
 }
 
+static void acmp_init(void)
+{
+#define ACMPS 19
+    LPC_SYSCON->SYSAHBCLKCTRL |= (1 << ACMPS);
+#define ACMP_RST_N 12
+    LPC_SYSCON->PRESETCTRL &= ~(1 << ACMP_RST_N);
+    LPC_SYSCON->PRESETCTRL |= (1 << ACMP_RST_N);
+#define MODE1 4
+    LPC_IOCON->PIO0_6 &= ~(1 << MODE1);
+#define VDDCMP 8
+    LPC_SWM->PINENABLE0 &= ~(1 << VDDCMP);
+#define COMP_VP_SEL 8
+    LPC_CMP->CTRL = (0x6 << COMP_VP_SEL);
+}
+
+static uint8_t acmp_compare(uint8_t ladder)
+{
+#define LADMASK 0x1F
+    ladder &= LADMASK;
+#define LADEN 0
+#define LADSEL 1
+#define LADREF 6
+    LPC_CMP->LAD = (1 << LADEN) | (ladder << LADSEL) | (1 << LADREF);
+    spin(2);
+#define COMPSTAT 21
+    return (LPC_CMP->CTRL >> COMPSTAT) & 0x1;
+}
+
+static void acmp_sample(uint8_t *sample)
+{
+#define ACMP 15
+    LPC_SYSCON->PDRUNCFG &= ~(1 << ACMP);
+    uint8_t ladder = 0;
+    for (int i=0; i<5; i++) {
+        ladder += (acmp_compare(ladder + (1 << (4 - i))) << (4 - i));
+    }
+    LPC_SYSCON->PDRUNCFG |= (1 << ACMP);
+    *sample = ladder;
+    printf("[acmp] ladder: %u\n", ladder); 
+}
+
 static void i2c_init(void)
 {
 #define I2C 5
@@ -223,7 +264,7 @@ static void htu21d_read_user()
     htu21d_cmd(HTU21D_CMD_READ_USER, rx_buffer, sizeof(rx_buffer));
 }
 
-static ErrorCode_t htu21d_measure(uint8_t cmd, uint16_t *sample)
+static ErrorCode_t htu21d_sample(uint8_t cmd, uint16_t *sample)
 {
     uint8_t rx_buffer[4];
     ErrorCode_t err_code;
@@ -233,11 +274,11 @@ static ErrorCode_t htu21d_measure(uint8_t cmd, uint16_t *sample)
     return err_code;
 }
 
-static uint8_t htu21d_measure_temp(uint16_t *sample)
+static uint8_t htu21d_sample_temp(uint16_t *sample)
 {
     double temp;
     ErrorCode_t err_code;
-    err_code = htu21d_measure(HTU21D_CMD_TEMP_HOLD, sample);
+    err_code = htu21d_sample(HTU21D_CMD_TEMP_HOLD, sample);
     if (err_code == LPC_OK) {
         temp = -46.85 + 175.72 * ((double) *sample / 65536);
         printf("[temp] %dmC\n", (int)(1000 * temp));
@@ -247,11 +288,11 @@ static uint8_t htu21d_measure_temp(uint16_t *sample)
     return 1;
 }
 
-static uint8_t htu21d_measure_humid(uint16_t *sample)
+static uint8_t htu21d_sample_humid(uint16_t *sample)
 {
     double humid;
     ErrorCode_t err_code;
-    err_code = htu21d_measure(HTU21D_CMD_HUMID_HOLD, sample);
+    err_code = htu21d_sample(HTU21D_CMD_HUMID_HOLD, sample);
     if (err_code == LPC_OK) {
         humid = -6 + 125 * ((double) *sample / 65536);
         printf("[humid] %dpm\n", (int)(10 * humid));
@@ -311,12 +352,13 @@ void WKT_IRQHandler(void)
 
 #define SAMPLE_PERIOD_S 64
     if (time % SAMPLE_PERIOD_S == 0) {
-        pkt_gauge.temp_err = htu21d_measure_temp(&pkt_gauge.temp);
+        pkt_gauge.temp_err = htu21d_sample_temp(&pkt_gauge.temp);
 #ifndef DEBUG
         spin(1); /* needed for proper i2c operation */
 #endif
-        pkt_gauge.humid_err = htu21d_measure_humid(&pkt_gauge.humid);
-        rf12_sendNow(0, &pkt_gauge, sizeof(pkt_gauge) - 1); /* force to 5 bytes */
+        pkt_gauge.humid_err = htu21d_sample_humid(&pkt_gauge.humid);
+        acmp_sample(&pkt_gauge.batt);
+        rf12_sendNow(0, &pkt_gauge, sizeof(pkt_gauge));
         rf12_sendWait(3);
         if (pkt_gauge.temp_err || pkt_gauge.humid_err) {
             i2c_bus_clear();
@@ -352,6 +394,7 @@ int main(void)
     pwr_init();
     i2c_init();
     led_init();
+    acmp_init();
     ekmb_init();
     rf12_initialize(cfg.nid, RF12_868MHZ, cfg.grp);
     rf12_sleep();

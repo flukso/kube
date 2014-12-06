@@ -141,10 +141,6 @@ static void acmp_init(void)
 #define ACMP_RST_N 12
     LPC_SYSCON->PRESETCTRL &= ~(1 << ACMP_RST_N);
     LPC_SYSCON->PRESETCTRL |= (1 << ACMP_RST_N);
-#define MODE1 4
-    LPC_IOCON->PIO0_6 &= ~(1 << MODE1);
-#define VDDCMP 8
-    LPC_SWM->PINENABLE0 &= ~(1 << VDDCMP);
 #define COMP_VP_SEL 8
     LPC_CMP->CTRL = (0x6 << COMP_VP_SEL);
 }
@@ -155,8 +151,7 @@ static uint8_t acmp_compare(uint8_t ladder)
     ladder &= LADMASK;
 #define LADEN 0
 #define LADSEL 1
-#define LADREF 6
-    LPC_CMP->LAD = (1 << LADEN) | (ladder << LADSEL) | (1 << LADREF);
+    LPC_CMP->LAD = (1 << LADEN) | (ladder << LADSEL);
     spin(2);
 #define COMPSTAT 21
     return (LPC_CMP->CTRL >> COMPSTAT) & 0x1;

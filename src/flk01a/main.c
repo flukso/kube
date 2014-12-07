@@ -157,7 +157,7 @@ static uint8_t acmp_compare(uint8_t ladder)
     return (LPC_CMP->CTRL >> COMPSTAT) & 0x1;
 }
 
-static void acmp_sample(uint8_t *sample)
+static uint8_t acmp_sample()
 {
 #define ACMP 15
     LPC_SYSCON->PDRUNCFG &= ~(1 << ACMP);
@@ -166,8 +166,8 @@ static void acmp_sample(uint8_t *sample)
         ladder += (acmp_compare(ladder + (1 << (4 - i))) << (4 - i));
     }
     LPC_SYSCON->PDRUNCFG |= (1 << ACMP);
-    *sample = ladder;
     printf("[acmp] ladder: %u\n", ladder); 
+    return ladder;
 }
 
 static void i2c_init(void)
@@ -199,9 +199,9 @@ static void i2c_bus_clear(void)
     LPC_GPIO_PORT->DIR0 |= (1 << SCL_PIN);
     for (int i = 0; i < 9; i++) {
         LPC_GPIO_PORT->SET0 = (1 << SCL_PIN);
-        spin(1);
+        spin(2);
         LPC_GPIO_PORT->CLR0 = (1 << SCL_PIN);
-        spin(1);
+        spin(2);
     }
     LPC_GPIO_PORT->DIR0 &= ~(1 << SCL_PIN);
     /* re-assign SCL to PIO0_10 */
@@ -347,13 +347,13 @@ void WKT_IRQHandler(void)
 
 #define SAMPLE_PERIOD_S 64
     if (time % SAMPLE_PERIOD_S == 0) {
+        pkt_gauge.batt = acmp_sample();
         pkt_gauge.temp_err = htu21d_sample_temp(&pkt_gauge.temp);
 #ifndef DEBUG
-        spin(1); /* needed for proper i2c operation */
+        spin(2); /* needed for proper i2c operation */
 #endif
         pkt_gauge.humid_err = htu21d_sample_humid(&pkt_gauge.humid);
-        acmp_sample(&pkt_gauge.batt);
-        rf12_sendNow(0, &pkt_gauge, sizeof(pkt_gauge));
+        rf12_sendNow(0, &pkt_gauge, sizeof(pkt_gauge) - 1);
         rf12_sendWait(3);
         if (pkt_gauge.temp_err || pkt_gauge.humid_err) {
             i2c_bus_clear();

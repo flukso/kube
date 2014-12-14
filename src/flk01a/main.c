@@ -400,7 +400,7 @@ void WKT_IRQHandler(void)
         spin(2); /* needed for proper i2c operation */
 #endif
         pkt_gauge.humid_err = htu21d_sample_humid(&pkt_gauge.humid);
-        rf12_sendNow(0, &pkt_gauge, sizeof(pkt_gauge) - 1);
+        rf12_sendNow(0, &pkt_gauge, sizeof(pkt_gauge));
         rf12_sendWait(3);
         if (pkt_gauge.temp_err || pkt_gauge.humid_err) {
             i2c_bus_clear();

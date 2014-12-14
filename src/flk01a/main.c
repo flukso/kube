@@ -22,9 +22,11 @@ enum NVIC_priorities {
 
 static struct config_s cfg;
 
-static struct {
+static volatile struct {
     I2C_HANDLE_T *handle;
     uint32_t mem[24];
+    ErrorCode_t err_code;
+    uint8_t ready;
 } i2c;
 
 volatile uint32_t mtime = 0;
@@ -177,17 +179,31 @@ static void i2c_init(void)
 #define I2C_RST_N 6
     LPC_SYSCON->PRESETCTRL &= ~(1 << I2C_RST_N);
     LPC_SYSCON->PRESETCTRL |= (1 << I2C_RST_N);
+#define I2C_MODE 8
+    LPC_IOCON->PIO0_10 = (0x2 << I2C_MODE);
+    LPC_IOCON->PIO0_11 = (0x2 << I2C_MODE);
+    NVIC_EnableIRQ(I2C_IRQn);
+    NVIC_SetPriority(I2C_IRQn, PRIO_HIGH);
     ErrorCode_t err_code;
     printf("[i2c] firmware: v%u\n", (unsigned int)LPC_I2CD_API->i2c_get_firmware_version());
     printf("[i2c] memsize: %uB\n", (unsigned int)LPC_I2CD_API->i2c_get_mem_size());
-    i2c.handle = LPC_I2CD_API->i2c_setup(LPC_I2C_BASE, i2c.mem);
-#define I2C_CLOCKRATE 10000UL
+    i2c.handle = LPC_I2CD_API->i2c_setup(LPC_I2C_BASE, (uint32_t *)i2c.mem);
+#define I2C_CLOCKRATE 100000UL
     printf("[i2c] clk: %uHz\n", (unsigned int)I2C_CLOCKRATE);
     err_code = LPC_I2CD_API->i2c_set_bitrate(i2c.handle, __SYSTEM_CLOCK, I2C_CLOCKRATE);
     printf("[i2c] set_bitrate err: %x\n", err_code);
 #define I2C_TIMEOUT 1000UL
-    err_code = LPC_I2CD_API->i2c_set_timeout(i2c.handle, I2C_TIMEOUT);
-    printf("[i2c] set_timeout stat: %x\n", err_code);
+}
+
+void I2C_IRQHandler(void)
+{
+    LPC_I2CD_API->i2c_isr_handler(i2c.handle);
+}
+
+static void i2c_callback(uint32_t err_code, uint32_t n)
+{
+    i2c.err_code = err_code; 
+    i2c.ready = 1;
 }
 
 static void i2c_bus_clear(void)
@@ -197,10 +213,10 @@ static void i2c_bus_clear(void)
     LPC_SWM->PINASSIGN8 |= 0xFF;
 #define SCL_PIN 10
     LPC_GPIO_PORT->DIR0 |= (1 << SCL_PIN);
-    for (int i = 0; i < 9; i++) {
-        LPC_GPIO_PORT->SET0 = (1 << SCL_PIN);
-        spin(2);
+    for (int i = 0; i < 10; i++) {
         LPC_GPIO_PORT->CLR0 = (1 << SCL_PIN);
+        spin(2);
+        LPC_GPIO_PORT->SET0 = (1 << SCL_PIN);
         spin(2);
     }
     LPC_GPIO_PORT->DIR0 &= ~(1 << SCL_PIN);
@@ -211,59 +227,90 @@ static void i2c_bus_clear(void)
 #define HTU21D_ADDRESS 0x40
 #define HTU21D_CMD_TEMP_HOLD 0xE3
 #define HTU21D_CMD_HUMID_HOLD 0xE5
+#define HTU21D_CMD_TEMP_NO_HOLD 0xF3
+#define HTU21D_CMD_HUMID_NO_HOLD 0xF5
 #define HTU21D_CMD_READ_USER 0xE7
 #define HTU21D_CMD_SOFT_RESET 0xFE
 #define HTU21D_SAMPLE_ERR 0xFFFF
 
-static ErrorCode_t htu21d_cmd(uint8_t cmd, uint8_t rx_buffer[], size_t rx_count)
+static ErrorCode_t htu21d_write(uint8_t cmd)
 {
     static unsigned int i = 0;
     uint8_t tx_buffer[2];
     tx_buffer[0] = HTU21D_ADDRESS << 1;
     tx_buffer[1] = cmd;
-    if (rx_count > 0) {
-        rx_buffer[0] = HTU21D_ADDRESS << 1 | 0x01;
-    }
 
     I2C_PARAM_T param = {
         .num_bytes_send = 2,
-        .num_bytes_rec = rx_count,
+        .num_bytes_rec = 0,
         .buffer_ptr_send = tx_buffer,
-        .buffer_ptr_rec = rx_buffer,
+        .buffer_ptr_rec = NULL,
+        .func_pt = i2c_callback,
         .stop_flag = 1
     };
     I2C_RESULT_T result;
-    ErrorCode_t err_code;
 
-    err_code = LPC_I2CD_API->i2c_master_tx_rx_poll(i2c.handle, &param, &result);
-    printf("[htu21d] i: %u cmd: 0x%02X\n", i++, cmd);
-    printf("[htu21d] err: 0x%02X\n", err_code);
-    if (rx_count > 0) {
-        printf("[htu21d] rx: 0x");
-        for (uint32_t j = 0; j < rx_count; j++) {
-            printf("%02X", rx_buffer[j]);
-        }
-        printf("\n");
-    }
-    return err_code;
+    i2c.ready = 0;
+    LPC_I2CD_API->i2c_master_transmit_intr(i2c.handle, &param, &result);
+    LPC_I2CD_API->i2c_set_timeout(i2c.handle, I2C_TIMEOUT);
+    while (!i2c.ready);
+    printf("[htu21d][w] i: %u err: 0x%02X tx: 0x%02X\n", i++, i2c.err_code, cmd);
+    return i2c.err_code;
 }
 
-static void htu21d_soft_reset()
+static ErrorCode_t htu21d_read(uint8_t rx_buffer[], size_t rx_count)
 {
-    htu21d_cmd(HTU21D_CMD_SOFT_RESET, NULL, 0);
+    static unsigned int i = 0;
+    rx_buffer[0] = HTU21D_ADDRESS << 1 | 0x01;
+
+    I2C_PARAM_T param = {
+        .num_bytes_send = 0,
+        .num_bytes_rec = rx_count,
+        .buffer_ptr_send = NULL,
+        .buffer_ptr_rec = rx_buffer,
+        .func_pt = i2c_callback,
+        .stop_flag = 1
+    };
+    I2C_RESULT_T result;
+
+    i2c.ready = 0;
+    LPC_I2CD_API->i2c_master_receive_intr(i2c.handle, &param, &result);
+    LPC_I2CD_API->i2c_set_timeout(i2c.handle, I2C_TIMEOUT);
+    while (!i2c.ready);
+    printf("[htu21d][r] i: %u err: 0x%02X rx: 0x", i++, i2c.err_code);
+    for (uint32_t j = 0; j < rx_count; j++) {
+        printf("%02X", rx_buffer[j]);
+    }
+    printf("\n");
+    return i2c.err_code;
 }
 
-static void htu21d_read_user()
+static ErrorCode_t htu21d_soft_reset()
+{
+    return htu21d_write(HTU21D_CMD_SOFT_RESET);
+}
+
+static ErrorCode_t htu21d_read_user()
 {
     uint8_t rx_buffer[2];
-    htu21d_cmd(HTU21D_CMD_READ_USER, rx_buffer, sizeof(rx_buffer));
+    ErrorCode_t err_code;
+    err_code = htu21d_write(HTU21D_CMD_READ_USER);
+    if (err_code != LPC_OK) {
+        return err_code;
+    }
+    return htu21d_read(rx_buffer, sizeof(rx_buffer));
 }
 
 static ErrorCode_t htu21d_sample(uint8_t cmd, uint16_t *sample)
 {
     uint8_t rx_buffer[4];
     ErrorCode_t err_code;
-    err_code = htu21d_cmd(cmd, rx_buffer, sizeof(rx_buffer));
+    err_code = htu21d_write(cmd);
+    if (err_code != LPC_OK) {
+        return err_code;
+    }
+    spin(50);
+    err_code = htu21d_read(rx_buffer, sizeof(rx_buffer));
     /* TODO add CRC8 checking */
     *sample = (rx_buffer[1] << 8) | (rx_buffer[2] & 0xFC);
     return err_code;
@@ -273,7 +320,7 @@ static uint8_t htu21d_sample_temp(uint16_t *sample)
 {
     double temp;
     ErrorCode_t err_code;
-    err_code = htu21d_sample(HTU21D_CMD_TEMP_HOLD, sample);
+    err_code = htu21d_sample(HTU21D_CMD_TEMP_NO_HOLD, sample);
     if (err_code == LPC_OK) {
         temp = -46.85 + 175.72 * ((double) *sample / 65536);
         printf("[temp] %dmC\n", (int)(1000 * temp));
@@ -287,7 +334,7 @@ static uint8_t htu21d_sample_humid(uint16_t *sample)
 {
     double humid;
     ErrorCode_t err_code;
-    err_code = htu21d_sample(HTU21D_CMD_HUMID_HOLD, sample);
+    err_code = htu21d_sample(HTU21D_CMD_HUMID_NO_HOLD, sample);
     if (err_code == LPC_OK) {
         humid = -6 + 125 * ((double) *sample / 65536);
         printf("[humid] %dpm\n", (int)(10 * humid));
@@ -394,9 +441,10 @@ int main(void)
     rf12_initialize(cfg.nid, RF12_868MHZ, cfg.grp);
     rf12_sleep();
     __enable_irq();
+    spin(15);
     i2c_bus_clear();
     htu21d_soft_reset();
-    spin(100);
+    spin(15);
     htu21d_read_user();
 #ifdef DEBUG
     spin(2);

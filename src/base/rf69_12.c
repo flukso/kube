@@ -77,7 +77,7 @@ uint8_t rf12_initialize(uint8_t id, uint8_t band, uint8_t g) {
   // this is still 4 ppm, i.e. well below the radio's 32 MHz crystal accuracy
   // 868.0 MHz = 0xD90000, 868.3 MHz = 0xD91300, 915.0 MHz = 0xE4C000
   
-  int offset =  1600;         // Replace with the eeprom value at some point.
+  int offset =  1660;         // Replace with the eeprom value at some point.
   freq = freq + (offset * (band * 2500L));
   
   int frf = (((uint32_t) freq << 2) / (32000000 >> 11)) << 6;

@@ -16,23 +16,22 @@ static void spiInit (void) {
   /* Enable SPI clock */
   LPC_SYSCON->SYSAHBCLKCTRL |= (1<<11);
 
-  /* Peripheral reset control to SPI, a "1" bring it out of reset. */
+  /* Peripheral reset control to SPI, a "1" brings it out of reset. */
   LPC_SYSCON->PRESETCTRL &= ~(0x1<<0);
   LPC_SYSCON->PRESETCTRL |= (0x1<<0);
   
-  // 10 MHz, i.e. 30 MHz / 3
-  LPC_SPI0->DIV = 2;
-  LPC_SPI0->DLY = 0;
+  /* 4MHz, i.e. 12MHz/3 */
+  LPC_SPI0->DIV = 3;
+  /* insert 16clk delays */
+  LPC_SPI0->DLY = 0x0000FFFF;
 
   LPC_SPI0->CFG = CFG_MASTER;
   LPC_SPI0->CFG |= CFG_ENABLE;
 }
 
 static uint16_t spiTransfer (uint16_t cmd) {
-  // while ((LPC_SPI0->STAT & STAT_TXRDY) == 0)
-  //   ;
+  while ((LPC_SPI0->STAT & STAT_TXRDY) == 0);
   LPC_SPI0->TXDATCTL = TXDATCTL_FSIZE(16-1) | TXDATCTL_EOT | cmd;
-  while ((LPC_SPI0->STAT & STAT_RXRDY) == 0)
-    ;
+  while ((LPC_SPI0->STAT & STAT_RXRDY) == 0);
   return LPC_SPI0->RXDAT;
 }

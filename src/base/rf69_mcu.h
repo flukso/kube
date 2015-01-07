@@ -20,8 +20,8 @@ static void spiInit (void) {
   LPC_SYSCON->PRESETCTRL &= ~(0x1<<0);
   LPC_SYSCON->PRESETCTRL |= (0x1<<0);
   
-  /* 4MHz, i.e. 12MHz/3 */
-  LPC_SPI0->DIV = 3;
+  /* 1MHz, i.e. 12MHz/12 */
+  LPC_SPI0->DIV = 12;
   /* insert 16clk delays */
   LPC_SPI0->DLY = 0x0000FFFF;
 

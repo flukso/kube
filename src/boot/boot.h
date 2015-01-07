@@ -48,7 +48,6 @@ static void dump (const char* msg, const void* buf, int len) {
 // return 1 if good reply, 0 if crc error, -1 if timeout
 static int sendRequest (const void* buf, int len, int hdrOr) {
   dump("send", buf, len);
-  // printf("sending %d b\n", len);
   rf12_sendNow(RF12_HDR_CTL | RF12_HDR_ACK | hdrOr, buf, len);
   rf12_sendWait(0);
   uint32_t start = millis();
@@ -65,6 +64,7 @@ static int sendRequest (const void* buf, int len, int hdrOr) {
 
       if (rf12_crc) {
         printf("bad crc %04X\n", rf12_crc);
+        dump("rx", (const void *)rf12_data, rf12_len);
         return 0;
       }
 
@@ -73,8 +73,8 @@ static int sendRequest (const void* buf, int len, int hdrOr) {
     }
   }
 
-  printf("got %d b hdr 0x%X crc %X\n", rf12_len, rf12_hdr, rf12_crc);
-  return 1;
+  printf("timeout\n");
+  return -1;
 }
 
 static void copyPageToFlash (void* ram, void* flash) {

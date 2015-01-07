@@ -37,16 +37,17 @@ uint16_t _crc16_update (uint16_t crc, uint8_t data) {
 static const uint8_t configRegs [] = {
   0x01, 0x04, // OpMode = standby
   0x02, 0x00, // DataModul = packet mode, fsk
-  0x03, 0x02, // BitRateMsb, data rate = 49,261 khz
-  0x04, 0x8A, // BitRateLsb, divider = 32 MHz / 650
+  0x03, 0x06, // BitRateMsb, data rate = 19.2 kbps
+  0x04, 0x83, // BitRateLsb, divider = 32 MHz / 1667
   0x05, 0x05, // FdevMsb = 90 KHz
   0x06, 0xC3, // FdevLsb = 90 KHz
-  0x07, 0xD9, // FrfMsb, freq = 868.000 MHz
-  0x08, 0x00, // FrfMib, divider = 14221312
-  0x09, 0x00, // FrfLsb, step = 61.03515625
+  0x07, 0xD9, // FrfMsb, freq = 868.300 MHz
+  0x08, 0x13, // FrfMib, divider = 14221312
+  0x09, 0x33, // FrfLsb, step = 61.03515625
   0x0B, 0x20, // AfcCtrl, afclowbetaon
-  0x11, 0x9C, // RegPaLevel 10dBm
-  0x19, 0x42, // RxBw ...
+  0x11, 0x9F, // RegPaLevel 13dBm
+  0x18, 0x00, // LNA input impedance = 50Ohm
+  0x19, 0x42, // RxBw = 125 kHz
   0x25, 0x40, // DioMapping1 ...
   0x29, 0xDC, // RssiThresh ...
   0x2E, 0x88, // SyncConfig = sync on, sync size = 2
@@ -80,7 +81,8 @@ uint8_t rf12_initialize(uint8_t id, uint8_t band, uint8_t g) {
   int offset =  1660;         // Replace with the eeprom value at some point.
   freq = freq + (offset * (band * 2500L));
   
-  int frf = (((uint32_t) freq << 2) / (32000000 >> 11)) << 6;
+  //int frf = (((uint32_t) freq << 2) / (32000000 >> 11)) << 6;
+  uint32_t frf = 0xD91333; /* = 868.3MHz */
   writeReg(REG_FRFMSB, frf >> 16);
   writeReg(REG_FRFMSB+1, frf >> 8);
   writeReg(REG_FRFMSB+2, frf);

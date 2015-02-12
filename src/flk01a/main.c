@@ -12,6 +12,7 @@
 #endif
 
 #include "config.h"
+#include "i2c.h"
 
 enum NVIC_priorities {
     PRIO_SYSTICK,
@@ -21,13 +22,12 @@ enum NVIC_priorities {
 };
 
 static struct config_s cfg;
-
-static volatile struct {
-    I2C_HANDLE_T *handle;
-    uint32_t mem[24];
-    ErrorCode_t err_code;
-    uint8_t ready;
-} i2c;
+static volatile struct i2c_s i2c;
+static const struct i2c_slaves_s i2c_slaves[] = {
+    { HTU21D_ADDRESS, "htu21d" },
+    { VCNL4000_ADDRESS, "vcnl4000" },
+    { 0, NULL }
+};
 
 volatile uint32_t mtime = 0;
 
@@ -238,20 +238,22 @@ static void i2c_bus_clear(void)
     switch_init();
 }
 
-#define HTU21D_ADDRESS 0x40
-#define HTU21D_CMD_TEMP_HOLD 0xE3
-#define HTU21D_CMD_HUMID_HOLD 0xE5
-#define HTU21D_CMD_TEMP_NO_HOLD 0xF3
-#define HTU21D_CMD_HUMID_NO_HOLD 0xF5
-#define HTU21D_CMD_READ_USER 0xE7
-#define HTU21D_CMD_SOFT_RESET 0xFE
-#define HTU21D_SAMPLE_ERR 0xFFFF
+static const char *i2c_name(uint8_t addr)
+{
+    uint8_t i = 0;
+    while (i2c_slaves[i].addr > 0) {
+        if (i2c_slaves[i].addr == addr)
+            return i2c_slaves[i].name;
+        i++;
+    }
+    return NULL;
+}
 
-static ErrorCode_t htu21d_write(uint8_t cmd)
+static ErrorCode_t i2c_write(uint8_t addr, uint8_t cmd)
 {
     static unsigned int i = 0;
     uint8_t tx_buffer[2];
-    tx_buffer[0] = HTU21D_ADDRESS << 1;
+    tx_buffer[0] = addr << 1;
     tx_buffer[1] = cmd;
 
     I2C_PARAM_T param = {
@@ -268,14 +270,14 @@ static ErrorCode_t htu21d_write(uint8_t cmd)
     LPC_I2CD_API->i2c_master_transmit_intr(i2c.handle, &param, &result);
     LPC_I2CD_API->i2c_set_timeout(i2c.handle, I2C_TIMEOUT);
     while (!i2c.ready);
-    printf("[htu21d][w] i: %u err: 0x%02X tx: 0x%02X\n", i++, i2c.err_code, cmd);
+    printf("[%s][w] i: %u err: 0x%02X tx: 0x%02X\n", i2c_name(addr), i++, i2c.err_code, cmd);
     return i2c.err_code;
 }
 
-static ErrorCode_t htu21d_read(uint8_t rx_buffer[], size_t rx_count)
+static ErrorCode_t i2c_read(uint8_t addr, uint8_t rx_buffer[], size_t rx_count)
 {
     static unsigned int i = 0;
-    rx_buffer[0] = HTU21D_ADDRESS << 1 | 0x01;
+    rx_buffer[0] = addr << 1 | 0x01;
 
     I2C_PARAM_T param = {
         .num_bytes_send = 0,
@@ -291,8 +293,8 @@ static ErrorCode_t htu21d_read(uint8_t rx_buffer[], size_t rx_count)
     LPC_I2CD_API->i2c_master_receive_intr(i2c.handle, &param, &result);
     LPC_I2CD_API->i2c_set_timeout(i2c.handle, I2C_TIMEOUT);
     while (!i2c.ready);
-    printf("[htu21d][r] i: %u err: 0x%02X rx: 0x", i++, i2c.err_code);
-    for (uint32_t j = 0; j < rx_count; j++) {
+    printf("[%s][r] i: %u err: 0x%02X rx: 0x", i2c_name(addr), i++, i2c.err_code);
+    for (uint32_t j = 1; j < rx_count; j++) {
         printf("%02X", rx_buffer[j]);
     }
     printf("\n");
@@ -301,30 +303,30 @@ static ErrorCode_t htu21d_read(uint8_t rx_buffer[], size_t rx_count)
 
 static ErrorCode_t htu21d_soft_reset()
 {
-    return htu21d_write(HTU21D_CMD_SOFT_RESET);
+    return i2c_write(HTU21D_ADDRESS, HTU21D_CMD_SOFT_RESET);
 }
 
 static ErrorCode_t htu21d_read_user()
 {
     uint8_t rx_buffer[2];
     ErrorCode_t err_code;
-    err_code = htu21d_write(HTU21D_CMD_READ_USER);
+    err_code = i2c_write(HTU21D_ADDRESS, HTU21D_CMD_READ_USER);
     if (err_code != LPC_OK) {
         return err_code;
     }
-    return htu21d_read(rx_buffer, sizeof(rx_buffer));
+    return i2c_read(HTU21D_ADDRESS, rx_buffer, sizeof(rx_buffer));
 }
 
 static ErrorCode_t htu21d_sample(uint8_t cmd, uint16_t *sample)
 {
     uint8_t rx_buffer[4];
     ErrorCode_t err_code;
-    err_code = htu21d_write(cmd);
+    err_code = i2c_write(HTU21D_ADDRESS, cmd);
     if (err_code != LPC_OK) {
         return err_code;
     }
     spin(50);
-    err_code = htu21d_read(rx_buffer, sizeof(rx_buffer));
+    err_code = i2c_read(HTU21D_ADDRESS, rx_buffer, sizeof(rx_buffer));
     /* TODO add CRC8 checking */
     *sample = (rx_buffer[1] << 8) | (rx_buffer[2] & 0xFC);
     return err_code;
@@ -356,6 +358,17 @@ static uint8_t htu21d_sample_humid(uint16_t *sample)
     }
     *sample = HTU21D_SAMPLE_ERR;
     return 1;
+}
+
+static ErrorCode_t vcnl4000_read_pid()
+{
+    uint8_t rx_buffer[2];
+    ErrorCode_t err_code;
+    err_code = i2c_write(VCNL4000_ADDRESS, VCNL4000_CMD_READ_PID);
+    if (err_code != LPC_OK) {
+        return err_code;
+    }
+    return i2c_read(VCNL4000_ADDRESS, rx_buffer, sizeof(rx_buffer));
 }
 
 static void ekmb_init()
@@ -460,6 +473,7 @@ int main(void)
     htu21d_soft_reset();
     spin(15);
     htu21d_read_user();
+    vcnl4000_read_pid();
 #ifdef DEBUG
     spin(2);
 #endif

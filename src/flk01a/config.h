@@ -14,6 +14,8 @@ struct config_s {
     uint16_t check;
 };
 
+static struct config_s cfg;
+
 static void* memcpy(void* dst, const void* src, int len)
 {
     uint8_t* to = (uint8_t*) dst;

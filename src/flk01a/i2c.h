@@ -1,14 +1,18 @@
-#define HTU21D_ADDRESS 0x40
-#define HTU21D_CMD_TEMP_HOLD 0xE3
-#define HTU21D_CMD_HUMID_HOLD 0xE5
-#define HTU21D_CMD_TEMP_NO_HOLD 0xF3
-#define HTU21D_CMD_HUMID_NO_HOLD 0xF5
-#define HTU21D_CMD_READ_USER 0xE7
-#define HTU21D_CMD_SOFT_RESET 0xFE
-#define HTU21D_SAMPLE_ERR 0xFFFF
+#ifndef __I2C_H__
+#define __I2C_H__
 
-#define VCNL4000_ADDRESS 0x13
-#define VCNL4000_CMD_READ_PID 0x81
+#include <stdint.h>
+#include "romapi_8xx.h"
+#include "rom_i2c_8xx.h"
+
+#include "main.h"
+#include "spin.h"
+#include "debug.h"
+#include "htu21d.h"
+#include "vcnl4000.h"
+
+#define I2C_CLOCKRATE 100000UL
+#define I2C_TIMEOUT 1000UL
 
 struct i2c_s {
     I2C_HANDLE_T *handle;
@@ -17,8 +21,17 @@ struct i2c_s {
     uint8_t ready;
 };
 
-struct i2c_slaves_s {
+struct i2c_slave_s {
     uint8_t addr;
     const char *name;
 };
+
+void I2C_IRQHandler(void);
+
+void i2c_init(void);
+void i2c_bus_clear(void);
+ErrorCode_t i2c_write(uint8_t addr, uint8_t cmd);
+ErrorCode_t i2c_read(uint8_t addr, uint8_t rx_buffer[], size_t rx_count);
+
+#endif
 

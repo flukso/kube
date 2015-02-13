@@ -1,56 +1,80 @@
-#include "LPC8xx.h"
-#include "romapi_8xx.h"
-#include "rom_pwr_8xx.h"
-#include "rom_i2c_8xx.h"
+/*
+
+  main.c - FluksoKube firmware
+
+  Copyright (c) 2015 Bart Van Der Meerssche <bart@flukso.net>
+
+  Permission is hereby granted, free of charge, to any person obtaining
+  a copy of this software and associated documentation files (the
+  "Software"), to deal in the Software without restriction, including
+  without limitation the rights to use, copy, modify, merge, publish,
+  distribute, sublicense, and/or sell copies of the Software, and to
+  permit persons to whom the Software is furnished to do so, subject to
+  the following conditions:
+
+  The above copyright notice and this permission notice shall be
+  included in all copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+  CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+  TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+  SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+*/
+
 #include <stdio.h>
-#include "uart.h"
-#include "pkt.h"
+#include "LPC8xx.h"
+#include "rom_pwr_8xx.h"
 #include "rf69_12.h"
 
-#ifndef DEBUG
-#define printf(...)
-#endif
-
+#include "main.h"
+#include "debug.h"
+#include "spin.h"
 #include "config.h"
+#include "pkt.h"
+#include "led.h"
 #include "i2c.h"
+#include "htu21d.h"
+#include "vcnl4000.h"
+#include "ekmb.h"
+#include "acmp.h"
 
-enum NVIC_priorities {
-    PRIO_SYSTICK,
-    PRIO_HIGH,
-    PRIO_MEDIUM,
-    PRIO_LOW
-};
-
-static struct config_s cfg;
-static volatile struct i2c_s i2c;
-static const struct i2c_slaves_s i2c_slaves[] = {
-    { HTU21D_ADDRESS, "htu21d" },
-    { VCNL4000_ADDRESS, "vcnl4000" },
-    { 0, NULL }
-};
-
-volatile uint32_t mtime = 0;
-
-static void systick_init(void)
+static void switch_init(void)
 {
-    /* 1000Hz */
-    SysTick_Config(__SYSTEM_CLOCK/1000-1);
-    NVIC_SetPriority(SysTick_IRQn, PRIO_SYSTICK);
-}
-
-void SysTick_Handler(void)
-{
-    ++mtime;
-}
-
-static void spin(uint32_t ms)
-{
-    uint32_t start = mtime;
-    uint32_t stop = start + ms;
-    if (stop < start) { /* overflow */
-        while (mtime > start);
-    }
-    while (mtime < stop);
+#define IOCON 18
+    LPC_SYSCON->SYSAHBCLKCTRL |= (1 << IOCON);
+    /* UART0_TXD 9 */
+    /* UART0_RXD 8 */
+    LPC_SWM->PINASSIGN0 = 0xFFFF0809UL;
+    /* I2C0_SDA 11 */
+    LPC_SWM->PINASSIGN7 = 0x0BFFFFFFUL;
+    /* I2C0_SCL 10 */
+    /* CLKOUT 3 */
+#ifdef DEBUG
+    /* disable SWCLK on PIO0_3 */
+#define SWCLK_EN 2;
+    LPC_SWM->PINENABLE0 |= 1 << SWCLK_EN;
+    LPC_SWM->PINASSIGN8 = 0xFF03FF0AUL;
+#else
+    LPC_SWM->PINASSIGN8 = 0xFFFFFF0AUL;
+#endif
+#define MODE0 3
+#define MODE1 4
+  /* SPI0_SCK 7 */
+  LPC_IOCON->PIO0_7 &= ~(1 << MODE1);
+  LPC_SWM->PINASSIGN3 = 0x07FFFFFFUL;
+  /* SPI0_MOSI 1 */
+  LPC_IOCON->PIO0_1 &= ~(1 << MODE1);
+  /* SPI0_MISO 13 (repeater mode) */
+  LPC_IOCON->PIO0_13 |= (1 << MODE0);
+  /* SPI0_SSEL 14 */
+  LPC_IOCON->PIO0_14 &= ~(1 << MODE1);
+  LPC_SWM->PINASSIGN4 = 0xFF0E0D01UL;
+  /* IRQ 17 */
+  LPC_IOCON->PIO0_17 &= ~(1 << MODE1);
 }
 
 static void wkt_init(void)
@@ -76,56 +100,6 @@ static void wkt_init(void)
     LPC_PMU->PCON = POWER_DOWN;
 }
 
-static void switch_init(void)
-{
-#define IOCON 18
-    LPC_SYSCON->SYSAHBCLKCTRL |= (1 << IOCON);
-    /* UART0_TXD 9 */
-    /* UART0_RXD 8 */
-    LPC_SWM->PINASSIGN0 = 0xFFFF0809UL;
-    /* I2C0_SDA 11 */
-    LPC_SWM->PINASSIGN7 = 0x0BFFFFFFUL;
-    /* I2C0_SCL 10 */
-    /* CLKOUT 3 */
-#ifdef DEBUG
-    /* disable SWCLK on PIO0_3 */
-#define SWCLK_EN 2;
-    LPC_SWM->PINENABLE0 |= 1 << SWCLK_EN;
-    LPC_SWM->PINASSIGN8 = 0xFF03FF0AUL;
-#else
-    LPC_SWM->PINASSIGN8 = 0xFFFFFF0AUL;
-#endif
-#define MODE0 3
-#define MODE1 4
-  /* SPI0_SCK 7 */
-  LPC_IOCON->PIO0_7 &= ~(1 << MODE1);
-  LPC_SWM->PINASSIGN3 = 0x07ffffffUL;
-  /* SPI0_MOSI 1 */
-  LPC_IOCON->PIO0_1 &= ~(1 << MODE1);
-  /* SPI0_MISO 13 (repeater mode) */
-  LPC_IOCON->PIO0_13 |= (1 << MODE0);
-  /* SPI0_SSEL 14 */
-  LPC_IOCON->PIO0_14 &= ~(1 << MODE1);
-  LPC_SWM->PINASSIGN4 = 0xff0e0d01UL;
-  /* IRQ 17 */
-  LPC_IOCON->PIO0_17 &= ~(1 << MODE1);
-}
-
-static void led_init(void)
-{
-#define LED_PIN 0
-    LPC_GPIO_PORT->DIR0 |= (1 << LED_PIN);
-#define MODE1 4
-    LPC_IOCON->PIO0_0 &= ~(1 << MODE1);
-}
-
-static void led_blink(void)
-{
-    LPC_GPIO_PORT->SET0 = 1 << LED_PIN;
-    spin(10);
-    LPC_GPIO_PORT->CLR0 = 1 << LED_PIN;
-} 
-
 static void pwr_init(void)
 {
     uint32_t cmd[] = {12, PWR_LOW_CURRENT, 12};
@@ -143,257 +117,6 @@ static void clkout_init(void)
     LPC_SYSCON->CLKOUTUEN = 0;
     LPC_SYSCON->CLKOUTUEN = 1;
     LPC_SYSCON->CLKOUTDIV = 1;
-}
-
-static void uart_init(void)
-{
-    uart0Init(115200);
-}
-
-static void acmp_init(void)
-{
-#define ACMPS 19
-    LPC_SYSCON->SYSAHBCLKCTRL |= (1 << ACMPS);
-#define ACMP_RST_N 12
-    LPC_SYSCON->PRESETCTRL &= ~(1 << ACMP_RST_N);
-    LPC_SYSCON->PRESETCTRL |= (1 << ACMP_RST_N);
-#define COMP_VP_SEL 8
-    LPC_CMP->CTRL = (0x6 << COMP_VP_SEL);
-}
-
-static uint8_t acmp_compare(uint8_t ladder)
-{
-#define LADMASK 0x1F
-    ladder &= LADMASK;
-#define LADEN 0
-#define LADSEL 1
-    LPC_CMP->LAD = (1 << LADEN) | (ladder << LADSEL);
-    spin(2);
-#define COMPSTAT 21
-    return (LPC_CMP->CTRL >> COMPSTAT) & 0x1;
-}
-
-static uint8_t acmp_sample()
-{
-#define ACMP 15
-    LPC_SYSCON->PDRUNCFG &= ~(1 << ACMP);
-    uint8_t ladder = 0;
-    for (int i=0; i<5; i++) {
-        ladder += (acmp_compare(ladder + (1 << (4 - i))) << (4 - i));
-    }
-    LPC_SYSCON->PDRUNCFG |= (1 << ACMP);
-    printf("[acmp] ladder: %u\n", ladder); 
-    return ladder;
-}
-
-static void i2c_init(void)
-{
-#define I2C 5
-    LPC_SYSCON->SYSAHBCLKCTRL |= (1 << I2C);
-#define I2C_RST_N 6
-    LPC_SYSCON->PRESETCTRL &= ~(1 << I2C_RST_N);
-    LPC_SYSCON->PRESETCTRL |= (1 << I2C_RST_N);
-#define I2C_MODE 8
-    LPC_IOCON->PIO0_10 = (0x2 << I2C_MODE);
-    LPC_IOCON->PIO0_11 = (0x2 << I2C_MODE);
-    NVIC_EnableIRQ(I2C_IRQn);
-    NVIC_SetPriority(I2C_IRQn, PRIO_HIGH);
-    ErrorCode_t err_code;
-    printf("[i2c] firmware: v%u\n", (unsigned int)LPC_I2CD_API->i2c_get_firmware_version());
-    printf("[i2c] memsize: %uB\n", (unsigned int)LPC_I2CD_API->i2c_get_mem_size());
-    i2c.handle = LPC_I2CD_API->i2c_setup(LPC_I2C_BASE, (uint32_t *)i2c.mem);
-#define I2C_CLOCKRATE 100000UL
-    printf("[i2c] clk: %uHz\n", (unsigned int)I2C_CLOCKRATE);
-    err_code = LPC_I2CD_API->i2c_set_bitrate(i2c.handle, __SYSTEM_CLOCK, I2C_CLOCKRATE);
-    printf("[i2c] set_bitrate err: %x\n", err_code);
-#define I2C_TIMEOUT 1000UL
-}
-
-void I2C_IRQHandler(void)
-{
-    LPC_I2CD_API->i2c_isr_handler(i2c.handle);
-}
-
-static void i2c_callback(uint32_t err_code, uint32_t n)
-{
-    i2c.err_code = err_code; 
-    i2c.ready = 1;
-}
-
-static void i2c_bus_clear(void)
-{
-    /* TODO increase bus speed to 10kHz */
-    /* free PIO0_10 from SCL */
-    LPC_SWM->PINASSIGN8 |= 0xFF;
-#define SCL_PIN 10
-    LPC_GPIO_PORT->DIR0 |= (1 << SCL_PIN);
-    for (int i = 0; i < 10; i++) {
-        LPC_GPIO_PORT->CLR0 = (1 << SCL_PIN);
-        spin(2);
-        LPC_GPIO_PORT->SET0 = (1 << SCL_PIN);
-        spin(2);
-    }
-    LPC_GPIO_PORT->DIR0 &= ~(1 << SCL_PIN);
-    /* re-assign SCL to PIO0_10 */
-    switch_init();
-}
-
-static const char *i2c_name(uint8_t addr)
-{
-    uint8_t i = 0;
-    while (i2c_slaves[i].addr > 0) {
-        if (i2c_slaves[i].addr == addr)
-            return i2c_slaves[i].name;
-        i++;
-    }
-    return NULL;
-}
-
-static ErrorCode_t i2c_write(uint8_t addr, uint8_t cmd)
-{
-    static unsigned int i = 0;
-    uint8_t tx_buffer[2];
-    tx_buffer[0] = addr << 1;
-    tx_buffer[1] = cmd;
-
-    I2C_PARAM_T param = {
-        .num_bytes_send = 2,
-        .num_bytes_rec = 0,
-        .buffer_ptr_send = tx_buffer,
-        .buffer_ptr_rec = NULL,
-        .func_pt = i2c_callback,
-        .stop_flag = 1
-    };
-    I2C_RESULT_T result;
-
-    i2c.ready = 0;
-    LPC_I2CD_API->i2c_master_transmit_intr(i2c.handle, &param, &result);
-    LPC_I2CD_API->i2c_set_timeout(i2c.handle, I2C_TIMEOUT);
-    while (!i2c.ready);
-    printf("[%s][w] i: %u err: 0x%02X tx: 0x%02X\n", i2c_name(addr), i++, i2c.err_code, cmd);
-    return i2c.err_code;
-}
-
-static ErrorCode_t i2c_read(uint8_t addr, uint8_t rx_buffer[], size_t rx_count)
-{
-    static unsigned int i = 0;
-    rx_buffer[0] = addr << 1 | 0x01;
-
-    I2C_PARAM_T param = {
-        .num_bytes_send = 0,
-        .num_bytes_rec = rx_count,
-        .buffer_ptr_send = NULL,
-        .buffer_ptr_rec = rx_buffer,
-        .func_pt = i2c_callback,
-        .stop_flag = 1
-    };
-    I2C_RESULT_T result;
-
-    i2c.ready = 0;
-    LPC_I2CD_API->i2c_master_receive_intr(i2c.handle, &param, &result);
-    LPC_I2CD_API->i2c_set_timeout(i2c.handle, I2C_TIMEOUT);
-    while (!i2c.ready);
-    printf("[%s][r] i: %u err: 0x%02X rx: 0x", i2c_name(addr), i++, i2c.err_code);
-    for (uint32_t j = 1; j < rx_count; j++) {
-        printf("%02X", rx_buffer[j]);
-    }
-    printf("\n");
-    return i2c.err_code;
-}
-
-static ErrorCode_t htu21d_soft_reset()
-{
-    return i2c_write(HTU21D_ADDRESS, HTU21D_CMD_SOFT_RESET);
-}
-
-static ErrorCode_t htu21d_read_user()
-{
-    uint8_t rx_buffer[2];
-    ErrorCode_t err_code;
-    err_code = i2c_write(HTU21D_ADDRESS, HTU21D_CMD_READ_USER);
-    if (err_code != LPC_OK) {
-        return err_code;
-    }
-    return i2c_read(HTU21D_ADDRESS, rx_buffer, sizeof(rx_buffer));
-}
-
-static ErrorCode_t htu21d_sample(uint8_t cmd, uint16_t *sample)
-{
-    uint8_t rx_buffer[4];
-    ErrorCode_t err_code;
-    err_code = i2c_write(HTU21D_ADDRESS, cmd);
-    if (err_code != LPC_OK) {
-        return err_code;
-    }
-    spin(50);
-    err_code = i2c_read(HTU21D_ADDRESS, rx_buffer, sizeof(rx_buffer));
-    /* TODO add CRC8 checking */
-    *sample = (rx_buffer[1] << 8) | (rx_buffer[2] & 0xFC);
-    return err_code;
-}
-
-static uint8_t htu21d_sample_temp(uint16_t *sample)
-{
-    double temp;
-    ErrorCode_t err_code;
-    err_code = htu21d_sample(HTU21D_CMD_TEMP_NO_HOLD, sample);
-    if (err_code == LPC_OK) {
-        temp = -46.85 + 175.72 * ((double) *sample / 65536);
-        printf("[temp] %dmC\n", (int)(1000 * temp));
-        return 0;
-    }
-    *sample = HTU21D_SAMPLE_ERR;
-    return 1;
-}
-
-static uint8_t htu21d_sample_humid(uint16_t *sample)
-{
-    double humid;
-    ErrorCode_t err_code;
-    err_code = htu21d_sample(HTU21D_CMD_HUMID_NO_HOLD, sample);
-    if (err_code == LPC_OK) {
-        humid = -6 + 125 * ((double) *sample / 65536);
-        printf("[humid] %dpm\n", (int)(10 * humid));
-        return 0;
-    }
-    *sample = HTU21D_SAMPLE_ERR;
-    return 1;
-}
-
-static ErrorCode_t vcnl4000_read_pid()
-{
-    uint8_t rx_buffer[2];
-    ErrorCode_t err_code;
-    err_code = i2c_write(VCNL4000_ADDRESS, VCNL4000_CMD_READ_PID);
-    if (err_code != LPC_OK) {
-        return err_code;
-    }
-    return i2c_read(VCNL4000_ADDRESS, rx_buffer, sizeof(rx_buffer));
-}
-
-static void ekmb_init()
-{
-    /* disable pull-up */
-#define MODE1 4
-    LPC_IOCON->PIO0_15 &= ~(1 << MODE1);
-#define EKMB_PIN 15
-    LPC_SYSCON->PINTSEL[0] = EKMB_PIN;
-    NVIC_EnableIRQ(PININT0_IRQn);
-    NVIC_SetPriority(PININT0_IRQn, PRIO_HIGH);
-    /* wake-up from power-down  */
-#define PINT0 0
-    LPC_SYSCON->STARTERP0 |= (1 << PINT0);
-     /* clear rising edge */
-    LPC_PIN_INT->IST |= (1 << PINT0);
-    /* enable rising edge int */
-    LPC_PIN_INT->SIENR |= (1 << PINT0);
-}
-
-void PININT0_IRQHandler(void)
-{
-    /* clear rising edge */
-    LPC_PIN_INT->IST |= (1 << PINT0);
-    LPC_PMU->GPREG0 += 1;
 }
 
 void WKT_IRQHandler(void)
@@ -455,7 +178,7 @@ int main(void)
     systick_init();
 #ifdef DEBUG
     clkout_init();
-    uart_init();
+    uart0Init(115200);
 #endif
     printf("\n--- kube boot ---\n");
     printf("[sys] clk: %uHz\n", (unsigned int)__SYSTEM_CLOCK);

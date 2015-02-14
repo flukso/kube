@@ -96,14 +96,22 @@ static const char *i2c_name(uint8_t addr)
     return NULL;
 }
 
-ErrorCode_t i2c_write(uint8_t addr, uint8_t cmd)
+ErrorCode_t i2c_write(uint8_t addr, uint8_t reg, uint8_t cmd)
 {
-    uint8_t tx_buffer[2];
+    uint8_t tx_count;
+    uint8_t tx_buffer[3];
     tx_buffer[0] = addr << 1;
-    tx_buffer[1] = cmd;
+    if (reg == I2C_REG_NULL) {
+        tx_buffer[1] = cmd;
+        tx_count = 2;
+    } else {
+        tx_buffer[1] = reg;
+        tx_buffer[2] = cmd;
+        tx_count = 3;
+    };
 
     I2C_PARAM_T param = {
-        .num_bytes_send = 2,
+        .num_bytes_send = tx_count,
         .num_bytes_rec = 0,
         .buffer_ptr_send = tx_buffer,
         .buffer_ptr_rec = NULL,
@@ -116,7 +124,13 @@ ErrorCode_t i2c_write(uint8_t addr, uint8_t cmd)
     LPC_I2CD_API->i2c_master_transmit_intr(i2c.handle, &param, &result);
     LPC_I2CD_API->i2c_set_timeout(i2c.handle, I2C_TIMEOUT);
     while (!i2c.ready);
-    printf("[%s][w] i: %u err: 0x%02X tx: 0x%02X\n", i2c_name(addr), i++, i2c.err_code, cmd);
+    if (reg == I2C_REG_NULL) {
+        printf("[%s][w] i: %u err: 0x%02X cmd: 0x%02X\n",
+               i2c_name(addr), i++, i2c.err_code, cmd);
+    } else {
+        printf("[%s][w] i: %u err: 0x%02X reg: 0x%02X cmd: 0x%02X\n",
+               i2c_name(addr), i++, i2c.err_code, reg, cmd);
+    };
     return i2c.err_code;
 }
 

@@ -150,6 +150,9 @@ void WKT_IRQHandler(void)
         spin(2); /* needed for proper i2c operation */
 #endif
         pkt_gauge.humid_err = htu21d_sample_humid(&pkt_gauge.humid);
+        /* TODO add reading to gauge packet */
+        uint16_t sample = 0;
+        vcnl4000_sample_light(&sample);
         rf12_sendNow(0, &pkt_gauge, sizeof(pkt_gauge));
         rf12_sendWait(3);
         if (pkt_gauge.temp_err || pkt_gauge.humid_err) {

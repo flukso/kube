@@ -29,14 +29,14 @@
 
 ErrorCode_t htu21d_soft_reset(void)
 {
-    return i2c_write(HTU21D_ADDRESS, HTU21D_CMD_SOFT_RESET);
+    return i2c_write(HTU21D_ADDRESS, I2C_REG_NULL, HTU21D_CMD_SOFT_RESET);
 }
 
 ErrorCode_t htu21d_read_user(void)
 {
     uint8_t rx_buffer[2];
     ErrorCode_t err_code;
-    err_code = i2c_write(HTU21D_ADDRESS, HTU21D_CMD_READ_USER);
+    err_code = i2c_write(HTU21D_ADDRESS, I2C_REG_NULL, HTU21D_CMD_READ_USER);
     if (err_code != LPC_OK) {
         return err_code;
     }
@@ -47,7 +47,7 @@ static ErrorCode_t htu21d_sample(uint8_t cmd, uint16_t *sample)
 {
     uint8_t rx_buffer[4];
     ErrorCode_t err_code;
-    err_code = i2c_write(HTU21D_ADDRESS, cmd);
+    err_code = i2c_write(HTU21D_ADDRESS, I2C_REG_NULL, cmd);
     if (err_code != LPC_OK) {
         return err_code;
     }

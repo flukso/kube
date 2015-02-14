@@ -25,18 +25,48 @@
 
 */
 
-
-
 #include "vcnl4000.h"
 
 ErrorCode_t vcnl4000_read_pid(void)
 {
     uint8_t rx_buffer[2];
     ErrorCode_t err_code;
-    err_code = i2c_write(VCNL4000_ADDRESS, VCNL4000_CMD_READ_PID);
+    err_code = i2c_write(VCNL4000_ADDRESS, I2C_REG_NULL, VCNL4000_REG_PID);
     if (err_code != LPC_OK) {
         return err_code;
     }
     return i2c_read(VCNL4000_ADDRESS, rx_buffer, sizeof(rx_buffer));
+}
+
+static ErrorCode_t vcnl4000_sample(uint16_t *sample)
+{
+    uint8_t rx_buffer[3];
+    ErrorCode_t err_code;
+    err_code = i2c_write(VCNL4000_ADDRESS, VCNL4000_REG_COMMAND, VCNL4000_CMD_START_ALS);
+    if (err_code != LPC_OK) {
+        return err_code;
+    }
+    spin(105);
+    err_code = i2c_write(VCNL4000_ADDRESS, I2C_REG_NULL, VCNL4000_REG_LIGHT_RESULT);
+    if (err_code != LPC_OK) {
+        return err_code;
+    }
+    err_code = i2c_read(VCNL4000_ADDRESS, rx_buffer, sizeof(rx_buffer));
+    *sample = (rx_buffer[1] << 8) | rx_buffer[2];
+    return err_code;
+}
+
+uint8_t vcnl4000_sample_light(uint16_t *sample)
+{
+    unsigned int light;
+    ErrorCode_t err_code;
+    err_code = vcnl4000_sample(sample);
+    if (err_code == LPC_OK) {
+        light = *sample * 250;
+        printf("[light] %umlx\n", light);
+        return 0;
+    }
+    *sample = VCNL4000_SAMPLE_ERR;
+    return 1;
 }
 

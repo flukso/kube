@@ -38,7 +38,7 @@
 #include "led.h"
 #include "i2c.h"
 #include "htu21d.h"
-#include "vcnl4000.h"
+#include "vcnl4k.h"
 #include "ekmb.h"
 #include "acmp.h"
 
@@ -152,7 +152,7 @@ void WKT_IRQHandler(void)
         pkt_gauge.humid_err = htu21d_sample_humid(&pkt_gauge.humid);
         /* TODO add reading to gauge packet */
         uint16_t sample = 0;
-        vcnl4000_sample_light(&sample);
+        vcnl4k_sample_light(&sample);
         rf12_sendNow(0, &pkt_gauge, sizeof(pkt_gauge));
         rf12_sendWait(3);
         if (pkt_gauge.temp_err || pkt_gauge.humid_err) {
@@ -199,7 +199,7 @@ int main(void)
     htu21d_soft_reset();
     spin(15);
     htu21d_read_user();
-    vcnl4000_read_pid();
+    vcnl4k_read_pid();
 #ifdef DEBUG
     spin(2);
 #endif

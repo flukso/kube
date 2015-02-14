@@ -9,7 +9,7 @@
 #include "spin.h"
 #include "debug.h"
 #include "htu21d.h"
-#include "vcnl4000.h"
+#include "vcnl4k.h"
 
 #define I2C_CLOCKRATE 100000UL
 #define I2C_TIMEOUT 1000UL

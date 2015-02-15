@@ -10,6 +10,7 @@
 #include "debug.h"
 #include "htu21d.h"
 #include "vcnl4k.h"
+#include "mpl3115.h"
 
 #define I2C_CLOCKRATE 100000UL
 #define I2C_TIMEOUT 1000UL
@@ -33,6 +34,7 @@ void i2c_init(void);
 void i2c_bus_clear(void);
 ErrorCode_t i2c_write(uint8_t addr, uint8_t reg, uint8_t cmd);
 ErrorCode_t i2c_read(uint8_t addr, uint8_t rx_buffer[], size_t rx_count);
-
+ErrorCode_t i2c_write_read(uint8_t addr, uint8_t reg, uint8_t rx_buffer[],
+                           size_t rx_count);
 #endif
 

@@ -39,6 +39,7 @@
 #include "i2c.h"
 #include "htu21d.h"
 #include "vcnl4k.h"
+#include "mpl3115.h"
 #include "ekmb.h"
 #include "acmp.h"
 
@@ -150,9 +151,11 @@ void WKT_IRQHandler(void)
         spin(2); /* needed for proper i2c operation */
 #endif
         pkt_gauge.humid_err = htu21d_sample_humid(&pkt_gauge.humid);
-        /* TODO add reading to gauge packet */
-        uint16_t sample = 0;
-        vcnl4k_sample_light(&sample);
+        /* TODO add light/pressure readings to gauge packet */
+        uint16_t sample0 = 0;
+        vcnl4k_sample_light(&sample0);
+        uint32_t sample1 = 0;
+        mpl3115_sample_pressure(&sample1);
         rf12_sendNow(0, &pkt_gauge, sizeof(pkt_gauge));
         rf12_sendWait(3);
         if (pkt_gauge.temp_err || pkt_gauge.humid_err) {
@@ -200,6 +203,7 @@ int main(void)
     spin(15);
     htu21d_read_user();
     vcnl4k_read_pid();
+    mpl3115_whoami();
 #ifdef DEBUG
     spin(2);
 #endif

@@ -32,7 +32,8 @@ static volatile struct i2c_s i2c;
 static const struct i2c_slave_s i2c_slaves[] = {
     { HTU21D_ADDRESS, "htu21d" },
     { VCNL4K_ADDRESS, "vcnl4k" },
-    { 0, NULL }
+    { MPL3115_ADDRESS, "mpl3115" },
+    { 0x00, NULL }
 };
 
 void I2C_IRQHandler(void)
@@ -153,6 +154,37 @@ ErrorCode_t i2c_read(uint8_t addr, uint8_t rx_buffer[], size_t rx_count)
     LPC_I2CD_API->i2c_set_timeout(i2c.handle, I2C_TIMEOUT);
     while (!i2c.ready);
     printf("[%s][r] i: %u err: 0x%02X rx: 0x", i2c_name(addr), i++, i2c.err_code);
+    for (uint32_t j = 1; j < rx_count; j++) {
+        printf("%02X", rx_buffer[j]);
+    }
+    printf("\n");
+    return i2c.err_code;
+}
+
+ErrorCode_t i2c_write_read(uint8_t addr, uint8_t reg, uint8_t rx_buffer[],
+                           size_t rx_count)
+{
+    uint8_t tx_buffer[2];
+    tx_buffer[0] = addr << 1;
+    tx_buffer[1] = reg;
+    rx_buffer[0] = addr << 1 | 0x01;
+
+    I2C_PARAM_T param = {
+        .num_bytes_send = 2,
+        .num_bytes_rec = rx_count,
+        .buffer_ptr_send = tx_buffer,
+        .buffer_ptr_rec = rx_buffer,
+        .func_pt = i2c_callback,
+        .stop_flag = 0
+    };
+    I2C_RESULT_T result;
+
+    i2c.ready = 0;
+    LPC_I2CD_API->i2c_master_tx_rx_intr(i2c.handle, &param, &result);
+    LPC_I2CD_API->i2c_set_timeout(i2c.handle, I2C_TIMEOUT);
+    while (!i2c.ready);
+    printf("[%s][wr] i: %u err: 0x%02X reg: 0x%02X rx: 0x",
+           i2c_name(addr), i++, i2c.err_code, reg);
     for (uint32_t j = 1; j < rx_count; j++) {
         printf("%02X", rx_buffer[j]);
     }

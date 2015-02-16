@@ -126,10 +126,10 @@ ErrorCode_t i2c_write(uint8_t addr, uint8_t reg, uint8_t cmd)
     LPC_I2CD_API->i2c_set_timeout(i2c.handle, I2C_TIMEOUT);
     while (!i2c.ready);
     if (reg == I2C_REG_NULL) {
-        printf("[%s][w] i: %u err: 0x%02X cmd: 0x%02X\n",
+        printf("[%s][w][%u] err: 0x%02X cmd: 0x%02X\n",
                i2c_name(addr), i++, i2c.err_code, cmd);
     } else {
-        printf("[%s][w] i: %u err: 0x%02X reg: 0x%02X cmd: 0x%02X\n",
+        printf("[%s][w][%u] err: 0x%02X reg: 0x%02X cmd: 0x%02X\n",
                i2c_name(addr), i++, i2c.err_code, reg, cmd);
     };
     return i2c.err_code;
@@ -153,7 +153,7 @@ ErrorCode_t i2c_read(uint8_t addr, uint8_t rx_buffer[], size_t rx_count)
     LPC_I2CD_API->i2c_master_receive_intr(i2c.handle, &param, &result);
     LPC_I2CD_API->i2c_set_timeout(i2c.handle, I2C_TIMEOUT);
     while (!i2c.ready);
-    printf("[%s][r] i: %u err: 0x%02X rx: 0x", i2c_name(addr), i++, i2c.err_code);
+    printf("[%s][r][%u] err: 0x%02X rx: 0x", i2c_name(addr), i++, i2c.err_code);
     for (uint32_t j = 1; j < rx_count; j++) {
         printf("%02X", rx_buffer[j]);
     }
@@ -183,7 +183,7 @@ ErrorCode_t i2c_write_read(uint8_t addr, uint8_t reg, uint8_t rx_buffer[],
     LPC_I2CD_API->i2c_master_tx_rx_intr(i2c.handle, &param, &result);
     LPC_I2CD_API->i2c_set_timeout(i2c.handle, I2C_TIMEOUT);
     while (!i2c.ready);
-    printf("[%s][wr] i: %u err: 0x%02X reg: 0x%02X rx: 0x",
+    printf("[%s][wr][%u] err: 0x%02X reg: 0x%02X rx: 0x",
            i2c_name(addr), i++, i2c.err_code, reg);
     for (uint32_t j = 1; j < rx_count; j++) {
         printf("%02X", rx_buffer[j]);

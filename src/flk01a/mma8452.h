@@ -3,6 +3,7 @@
 
 #include "i2c.h"
 
+#define MMA8452_ID "mma8452"
 #define MMA8452_ADDRESS 0x1C
 #define MMA8452_REG_WHOAMI 0x0D
 

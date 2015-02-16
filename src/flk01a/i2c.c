@@ -30,10 +30,10 @@
 static unsigned int i = 0;
 static volatile struct i2c_s i2c;
 static const struct i2c_slave_s i2c_slaves[] = {
-    { HTU21D_ADDRESS, "htu21d" },
-    { VCNL4K_ADDRESS, "vcnl4k" },
-    { MPL3115_ADDRESS, "mpl3115" },
-    { MMA8452_ADDRESS, "mma8452" },
+    { HTU21D_ADDRESS, HTU21D_ID },
+    { VCNL4K_ADDRESS, VCNL4K_ID },
+    { MPL3115_ADDRESS, MPL3115_ID },
+    { MMA8452_ADDRESS, MMA8452_ID },
     { 0x00, NULL }
 };
 

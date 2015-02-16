@@ -3,6 +3,7 @@
 
 #include "i2c.h"
 
+#define MPL3115_ID "mpl3115"
 #define MPL3115_ADDRESS 0x60
 #define MPL3115_REG_P_OUT 0x01
 #define MPL3115_REG_WHOAMI 0x0C

@@ -3,6 +3,7 @@
 
 #include "i2c.h"
 
+#define VCNL4K_ID "vcnl4k"
 #define VCNL4K_ADDRESS 0x13
 #define VCNL4K_REG_COMMAND 0x80
 #define VCNL4K_REG_PID 0x81

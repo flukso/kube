@@ -3,6 +3,7 @@
 
 #include "i2c.h"
 
+#define HTU21D_ID "htu21d"
 #define HTU21D_ADDRESS 0x40
 #define HTU21D_CMD_TEMP_HOLD 0xE3
 #define HTU21D_CMD_HUMID_HOLD 0xE5

@@ -144,7 +144,7 @@ void WKT_IRQHandler(void)
 #endif
     }
 
-#define SAMPLE_PERIOD_S 64
+#define SAMPLE_PERIOD_S 1
     if (time % SAMPLE_PERIOD_S == 0) {
         pkt_gauge.batt = acmp_sample();
         pkt_gauge.temp_err = htu21d_sample_temp(&pkt_gauge.temp);

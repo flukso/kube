@@ -1,6 +1,6 @@
 /*
 
-  mpl3115.c - MPL3115A2 i2c driver
+  mma8452.c - MMA8452Q i2c driver
 
   Copyright (c) 2015 Bart Van Der Meerssche <bart@flukso.net>
 
@@ -25,42 +25,12 @@
 
 */
 
-#include "mpl3115.h"
+#include "mma8452.h"
 
-ErrorCode_t mpl3115_whoami(void)
+ErrorCode_t mma8452_whoami(void)
 {
     uint8_t rx_buffer[2];
-    return i2c_write_read(MPL3115_ADDRESS, MPL3115_REG_WHOAMI, rx_buffer,
+    return i2c_write_read(MMA8452_ADDRESS, MMA8452_REG_WHOAMI, rx_buffer,
                               sizeof(rx_buffer));
-}
-
-static ErrorCode_t mpl3115_sample(uint32_t *sample)
-{
-    uint8_t rx_buffer[4];
-    ErrorCode_t err_code;
-    err_code = i2c_write(MPL3115_ADDRESS, MPL3115_REG_CTRL_REG1,
-                         MPL3115_CMD_ONE_SHOT);
-    if (err_code != LPC_OK) {
-        return err_code;
-    }
-    spin(80);
-    err_code = i2c_write_read(MPL3115_ADDRESS, MPL3115_REG_P_OUT, rx_buffer,
-                              sizeof(rx_buffer));
-    *sample = (rx_buffer[1] << 12) | (rx_buffer[2] << 4) | (rx_buffer[3] >> 4);
-    return err_code;
-}
-
-uint8_t mpl3115_sample_pressure(uint32_t *sample)
-{
-    unsigned int pressure;
-    ErrorCode_t err_code;
-    err_code = mpl3115_sample(sample);
-    if (err_code == LPC_OK) {
-        pressure = *sample * 250;
-        printf("[pressure] %umPa\n", pressure);
-        return 0;
-    }
-    *sample = MPL3115_SAMPLE_ERR;
-    return 1;
 }
 

@@ -40,6 +40,7 @@
 #include "htu21d.h"
 #include "vcnl4k.h"
 #include "mpl3115.h"
+#include "mma8452.h"
 #include "ekmb.h"
 #include "acmp.h"
 
@@ -204,6 +205,7 @@ int main(void)
     htu21d_read_user();
     vcnl4k_read_pid();
     mpl3115_whoami();
+    mma8452_whoami();
 #ifdef DEBUG
     spin(2);
 #endif

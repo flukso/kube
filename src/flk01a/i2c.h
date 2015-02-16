@@ -11,6 +11,7 @@
 #include "htu21d.h"
 #include "vcnl4k.h"
 #include "mpl3115.h"
+#include "mma8452.h"
 
 #define I2C_CLOCKRATE 100000UL
 #define I2C_TIMEOUT 1000UL

@@ -33,6 +33,7 @@ static const struct i2c_slave_s i2c_slaves[] = {
     { HTU21D_ADDRESS, "htu21d" },
     { VCNL4K_ADDRESS, "vcnl4k" },
     { MPL3115_ADDRESS, "mpl3115" },
+    { MMA8452_ADDRESS, "mma8452" },
     { 0x00, NULL }
 };
 

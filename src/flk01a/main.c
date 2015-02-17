@@ -144,7 +144,16 @@ void WKT_IRQHandler(void)
 #endif
     }
 
-#define SAMPLE_PERIOD_S 1
+#ifdef DEBUG
+    static unsigned int mma8452_cnt = 0;
+    if (LPC_PMU->GPREG1 != mma8452_cnt) {
+        mma8452_cnt = LPC_PMU->GPREG1;
+        printf("[%s] cntr: %u\n", MMA8452_ID, mma8452_cnt);
+        spin(2);
+    }
+#endif
+
+#define SAMPLE_PERIOD_S 64
     if (time % SAMPLE_PERIOD_S == 0) {
         pkt_gauge.batt = acmp_sample();
         pkt_gauge.temp_err = htu21d_sample_temp(&pkt_gauge.temp);
@@ -153,10 +162,12 @@ void WKT_IRQHandler(void)
 #endif
         pkt_gauge.humid_err = htu21d_sample_humid(&pkt_gauge.humid);
         /* TODO add light/pressure readings to gauge packet */
+#ifdef DEBUG
         uint16_t sample0 = 0;
         vcnl4k_sample_light(&sample0);
         uint32_t sample1 = 0;
         mpl3115_sample_pressure(&sample1);
+#endif
         rf12_sendNow(0, &pkt_gauge, sizeof(pkt_gauge));
         rf12_sendWait(3);
         if (pkt_gauge.temp_err || pkt_gauge.humid_err) {
@@ -195,6 +206,9 @@ int main(void)
     led_init();
     acmp_init();
     ekmb_init();
+#ifdef DEBUG
+    mma8452_init();
+#endif
     rf12_initialize(cfg.nid, RF12_868MHZ, cfg.grp);
     rf12_sleep();
     __enable_irq();
@@ -207,6 +221,7 @@ int main(void)
     mpl3115_whoami();
     mma8452_whoami();
 #ifdef DEBUG
+    mma8452_trans_init();
     spin(2);
 #endif
     __disable_irq();

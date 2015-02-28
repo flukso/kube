@@ -65,18 +65,18 @@ static void switch_init(void)
 #endif
 #define MODE0 3
 #define MODE1 4
-  /* SPI0_SCK 7 */
-  LPC_IOCON->PIO0_7 &= ~(1 << MODE1);
-  LPC_SWM->PINASSIGN3 = 0x07FFFFFFUL;
-  /* SPI0_MOSI 1 */
-  LPC_IOCON->PIO0_1 &= ~(1 << MODE1);
-  /* SPI0_MISO 13 (repeater mode) */
-  LPC_IOCON->PIO0_13 |= (1 << MODE0);
-  /* SPI0_SSEL 14 */
-  LPC_IOCON->PIO0_14 &= ~(1 << MODE1);
-  LPC_SWM->PINASSIGN4 = 0xFF0E0D01UL;
-  /* IRQ 17 */
-  LPC_IOCON->PIO0_17 &= ~(1 << MODE1);
+    /* SPI0_SCK 7 */
+    LPC_IOCON->PIO0_7 &= ~(1 << MODE1);
+    LPC_SWM->PINASSIGN3 = 0x07FFFFFFUL;
+    /* SPI0_MOSI 1 */
+    LPC_IOCON->PIO0_1 &= ~(1 << MODE1);
+    /* SPI0_MISO 13 (repeater mode) */
+    LPC_IOCON->PIO0_13 |= (1 << MODE0);
+    /* SPI0_SSEL 14 */
+    LPC_IOCON->PIO0_14 &= ~(1 << MODE1);
+    LPC_SWM->PINASSIGN4 = 0xFF0E0D01UL;
+    /* IRQ 17 */
+    LPC_IOCON->PIO0_17 &= ~(1 << MODE1);
 }
 
 static void wkt_init(void)
@@ -100,6 +100,38 @@ static void wkt_init(void)
     SCB->SCR |= (1 << SLEEPONEXIT) | (1 << SLEEPDEEP);
 #define POWER_DOWN 0x02
     LPC_PMU->PCON = POWER_DOWN;
+}
+
+static void wwdt_init(void)
+{
+#define WWDT 17
+    LPC_SYSCON->SYSAHBCLKCTRL |= (1 << WWDT);
+    /* set WDT_OSC_CLK to 10kHz */
+#define DIVSEL 0
+#define FREQSEL 5
+    LPC_SYSCON->WDTOSCCTRL = (0x01 << FREQSEL) | (0x1D << DIVSEL);
+#define WDTOSC_PD 6
+    LPC_SYSCON->PDRUNCFG &= ~(1 << WDTOSC_PD);
+    LPC_SYSCON->PDAWAKECFG &= ~(1 << WDTOSC_PD);
+    LPC_SYSCON->PDSLEEPCFG &= ~(1 << WDTOSC_PD);
+#define WDT_1SEC 2500UL
+    /* watchdog feed should occur between quarter and double the SAMPLE_PERIOD */
+    LPC_WWDT->TC = 2 * SAMPLE_PERIOD_S * WDT_1SEC;
+    LPC_WWDT->WINDOW = (LPC_WWDT->TC & 0xFFFFFF) - SAMPLE_PERIOD_S * WDT_1SEC / 4;
+#define WDEN 0
+#define WDRESET 1
+#define WDTOF 2
+#define WDPROTECT 4
+#define LOCK 5
+    /* clear wdt time-out flag */
+    LPC_WWDT->MOD &= ~(1 << WDTOF);
+    LPC_WWDT->MOD = (1 << WDEN) | (1 << WDRESET) | (1 << LOCK);
+}
+
+static void wwdt_feed(void)
+{
+    LPC_WWDT->FEED = 0xAA;
+    LPC_WWDT->FEED = 0x55;
 }
 
 static void pwr_init(void)
@@ -153,9 +185,14 @@ void WKT_IRQHandler(void)
     }
 #endif
 
-#define SAMPLE_PERIOD_S 64
     if (time % SAMPLE_PERIOD_S == 0) {
-        pkt_gauge.batt = acmp_sample();
+        /* do not feed twice at startup or the second feed
+           will occur outside the wdt window */
+        if (time) {
+            wwdt_feed();
+        }
+
+       pkt_gauge.batt = acmp_sample();
         pkt_gauge.temp_err = htu21d_sample_temp(&pkt_gauge.temp);
 #ifndef DEBUG
         spin(2); /* needed for proper i2c operation */
@@ -176,7 +213,6 @@ void WKT_IRQHandler(void)
         led_blink();
     }
 
-#define RESET_PERIOD_S 65536UL
     if (time == RESET_PERIOD_S) {
         printf("[sys] resetting...\n");
 #ifdef DEBUG
@@ -192,6 +228,8 @@ int main(void)
 {
     int i = 0;
     __disable_irq();
+    wwdt_init();
+    wwdt_feed();
     switch_init();
     systick_init();
 #ifdef DEBUG

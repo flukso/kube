@@ -255,10 +255,10 @@ int main(void)
     htu21d_soft_reset();
     spin(15);
     htu21d_read_user();
+#ifdef DEBUG
     vcnl4k_read_pid();
     mpl3115_whoami();
     mma8452_whoami();
-#ifdef DEBUG
     mma8452_trans_init();
     spin(2);
 #endif

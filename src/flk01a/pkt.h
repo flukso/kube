@@ -8,5 +8,6 @@ struct pkt_gauge_s {
     uint8_t batt;
     uint8_t temp_err : 1;
     uint8_t humid_err : 1;
-    uint8_t padding : 6;
+    uint8_t padding : 5;
+    uint8_t wwdt_event : 1;
 };

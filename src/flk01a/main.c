@@ -187,13 +187,18 @@ void WKT_IRQHandler(void)
 #endif
 
     if (time % SAMPLE_PERIOD_S == 0) {
+        pkt_gauge.wwdt_event = 0;
         /* do not feed twice at startup or the second feed
            will occur outside the wdt window */
         if (time) {
             wwdt_feed();
+        } else {
+#define WDT 2
+            pkt_gauge.wwdt_event = LPC_SYSCON->SYSRSTSTAT >> WDT;
+            LPC_SYSCON->SYSRSTSTAT = 0;
         }
 
-       pkt_gauge.batt = acmp_sample();
+        pkt_gauge.batt = acmp_sample();
         pkt_gauge.temp_err = htu21d_sample_temp(&pkt_gauge.temp);
 #ifndef DEBUG
         spin(2); /* needed for proper i2c operation */

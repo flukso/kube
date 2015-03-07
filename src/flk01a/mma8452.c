@@ -46,10 +46,10 @@ void mma8452_init(void)
     NVIC_SetPriority(PININT1_IRQn, PRIO_HIGH);
     /* wake-up from power-down  */
     LPC_SYSCON->STARTERP0 |= (1 << PINT1);
-    /* clear rising edge */
+    /* clear edge interrupt */
     LPC_PIN_INT->IST |= (1 << PINT1);
-    /* enable rising edge int */
-    LPC_PIN_INT->SIENR |= (1 << PINT1);
+    /* enable falling edge int */
+    LPC_PIN_INT->SIENF |= (1 << PINT1);
 }
 
 ErrorCode_t mma8452_whoami(void)
@@ -87,7 +87,19 @@ ErrorCode_t mma8452_trans_init(void)
     if (err_code != LPC_OK) {
         return err_code;
     }
+    err_code = i2c_write(MMA8452_ADDRESS, MMA8452_REG_CTRL_REG2,
+                         MMA8452_CMD_LNOISE_LPOWER);
+    if (err_code != LPC_OK) {
+        return err_code;
+    }
     return i2c_write(MMA8452_ADDRESS, MMA8452_REG_CTRL_REG1,
-                         MMA8452_CMD_ACT_12HZ);
+                         MMA8452_CMD_LNOISE_ACT_12HZ);
+}
+
+ErrorCode_t mma8452_trans_clear(void)
+{
+    uint8_t rx_buffer[2];
+    return i2c_write_read(MMA8452_ADDRESS, MMA8452_REG_TRANS_SRC, rx_buffer,
+                              sizeof(rx_buffer));
 }
 

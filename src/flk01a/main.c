@@ -180,6 +180,7 @@ void WKT_IRQHandler(void)
     static unsigned int mma8452_cnt = 0;
     if (LPC_PMU->GPREG1 != mma8452_cnt) {
         mma8452_cnt = LPC_PMU->GPREG1;
+        mma8452_trans_clear();
         printf("[%s] cntr: %u\n", MMA8452_ID, mma8452_cnt);
         spin(2);
     }

@@ -6399,12 +6399,9 @@ LILYPAD- DIO-09910&lt;br&gt;</description>
 <part name="GND9" library="SparkFun-Aesthetics" deviceset="GND" device=""/>
 <part name="C4" library="flukso" deviceset="CAP" device="0402-CAP" value="100nF"/>
 <part name="GND10" library="SparkFun-Aesthetics" deviceset="GND" device=""/>
-<part name="R4" library="SparkFun-Passives" deviceset="RESISTOR" device="0402-RES" value="100k"/>
-<part name="GND11" library="SparkFun-Aesthetics" deviceset="GND" device=""/>
 <part name="SUPPLY7" library="SparkFun-Aesthetics" deviceset="3.3V" device=""/>
 <part name="GND12" library="SparkFun-Aesthetics" deviceset="GND" device=""/>
 <part name="C6" library="flukso" deviceset="CAP" device="0402-CAP" value="100nF"/>
-<part name="C7" library="flukso" deviceset="CAP" device="0402-CAP" value="100nF"/>
 <part name="GND13" library="SparkFun-Aesthetics" deviceset="GND" device=""/>
 <part name="U6" library="SparkFun-Sensors" deviceset="MPL3115A2" device="LGA8"/>
 <part name="SUPPLY8" library="SparkFun-Aesthetics" deviceset="3.3V" device=""/>
@@ -6429,6 +6426,9 @@ LILYPAD- DIO-09910&lt;br&gt;</description>
 <part name="SUPPLY2" library="SparkFun-Aesthetics" deviceset="VDD" device=""/>
 <part name="GND19" library="SparkFun-Aesthetics" deviceset="GND" device=""/>
 <part name="U5" library="flukso" deviceset="VCNL4010" device=""/>
+<part name="C7" library="flukso" deviceset="CAP" device="0805-CAP" value="4.7uF"/>
+<part name="SUPPLY11" library="SparkFun-Aesthetics" deviceset="3.3V" device=""/>
+<part name="R4" library="SparkFun-Passives" deviceset="RESISTOR" device="0402-RES" value="100k"/>
 </parts>
 <sheets>
 <sheet>
@@ -6468,20 +6468,17 @@ LILYPAD- DIO-09910&lt;br&gt;</description>
 <instance part="GND9" gate="1" x="187.96" y="60.96"/>
 <instance part="C4" gate="G$1" x="182.88" y="71.12" rot="MR0"/>
 <instance part="GND10" gate="1" x="215.9" y="60.96"/>
-<instance part="R4" gate="G$1" x="223.52" y="68.58" rot="R90"/>
-<instance part="GND11" gate="1" x="223.52" y="60.96"/>
 <instance part="SUPPLY7" gate="G$1" x="20.32" y="33.02"/>
 <instance part="GND12" gate="1" x="20.32" y="15.24"/>
 <instance part="C6" gate="G$1" x="20.32" y="25.4" rot="MR0"/>
-<instance part="C7" gate="G$1" x="63.5" y="25.4"/>
-<instance part="GND13" gate="1" x="63.5" y="15.24"/>
-<instance part="U6" gate="G$1" x="116.84" y="27.94"/>
-<instance part="SUPPLY8" gate="G$1" x="99.06" y="33.02"/>
-<instance part="GND14" gate="1" x="93.98" y="15.24"/>
-<instance part="C8" gate="G$1" x="93.98" y="20.32"/>
-<instance part="C9" gate="G$1" x="86.36" y="20.32" rot="MR0"/>
-<instance part="GND15" gate="1" x="86.36" y="15.24"/>
-<instance part="GND16" gate="1" x="101.6" y="15.24"/>
+<instance part="GND13" gate="1" x="78.74" y="15.24"/>
+<instance part="U6" gate="G$1" x="132.08" y="27.94"/>
+<instance part="SUPPLY8" gate="G$1" x="114.3" y="33.02"/>
+<instance part="GND14" gate="1" x="109.22" y="15.24"/>
+<instance part="C8" gate="G$1" x="109.22" y="20.32"/>
+<instance part="C9" gate="G$1" x="101.6" y="20.32" rot="MR0"/>
+<instance part="GND15" gate="1" x="101.6" y="15.24"/>
+<instance part="GND16" gate="1" x="116.84" y="15.24"/>
 <instance part="D1" gate="G$1" x="248.92" y="127"/>
 <instance part="R5" gate="G$1" x="248.92" y="137.16" rot="R90"/>
 <instance part="GND17" gate="1" x="248.92" y="111.76"/>
@@ -6502,6 +6499,12 @@ LILYPAD- DIO-09910&lt;br&gt;</description>
 <instance part="SUPPLY2" gate="VDD" x="63.5" y="124.46"/>
 <instance part="GND19" gate="1" x="63.5" y="106.68"/>
 <instance part="U5" gate="G$1" x="33.02" y="25.4"/>
+<instance part="C7" gate="G$1" x="78.74" y="25.4"/>
+<instance part="SUPPLY11" gate="G$1" x="78.74" y="33.02"/>
+<instance part="R4" gate="G$1" x="60.96" y="25.4" smashed="yes" rot="R90">
+<attribute name="NAME" x="57.3786" y="29.21" size="1.778" layer="95" rot="R270"/>
+<attribute name="VALUE" x="62.738" y="29.21" size="1.778" layer="96" rot="R270"/>
+</instance>
 </instances>
 <busses>
 </busses>
@@ -6593,9 +6596,9 @@ LILYPAD- DIO-09910&lt;br&gt;</description>
 <junction x="20.32" y="17.78"/>
 </segment>
 <segment>
-<pinref part="C7" gate="G$1" pin="2"/>
 <pinref part="GND13" gate="1" pin="GND"/>
-<wire x1="63.5" y1="22.86" x2="63.5" y2="17.78" width="0.1524" layer="91"/>
+<wire x1="78.74" y1="22.86" x2="78.74" y2="17.78" width="0.1524" layer="91"/>
+<pinref part="C7" gate="G$1" pin="2"/>
 </segment>
 <segment>
 <pinref part="GND14" gate="1" pin="GND"/>
@@ -6615,14 +6618,10 @@ LILYPAD- DIO-09910&lt;br&gt;</description>
 <pinref part="GND6" gate="1" pin="GND"/>
 </segment>
 <segment>
-<pinref part="R4" gate="G$1" pin="1"/>
-<pinref part="GND11" gate="1" pin="GND"/>
-</segment>
-<segment>
 <pinref part="U6" gate="G$1" pin="GND"/>
 <pinref part="GND16" gate="1" pin="GND"/>
-<wire x1="104.14" y1="25.4" x2="101.6" y2="25.4" width="0.1524" layer="91"/>
-<wire x1="101.6" y1="25.4" x2="101.6" y2="17.78" width="0.1524" layer="91"/>
+<wire x1="119.38" y1="25.4" x2="116.84" y2="25.4" width="0.1524" layer="91"/>
+<wire x1="116.84" y1="25.4" x2="116.84" y2="17.78" width="0.1524" layer="91"/>
 </segment>
 <segment>
 <pinref part="C10" gate="G$1" pin="2"/>
@@ -6695,6 +6694,11 @@ LILYPAD- DIO-09910&lt;br&gt;</description>
 <label x="25.4" y="152.4" size="1.27" layer="95" xref="yes"/>
 <pinref part="J1" gate="G$1" pin="5"/>
 </segment>
+<segment>
+<pinref part="U4" gate="G$1" pin="INT1"/>
+<wire x1="213.36" y1="71.12" x2="218.44" y2="71.12" width="0.1524" layer="91"/>
+<label x="218.44" y="71.12" size="1.27" layer="95" xref="yes"/>
+</segment>
 </net>
 <net name="SWCLK" class="0">
 <segment>
@@ -6747,8 +6751,8 @@ LILYPAD- DIO-09910&lt;br&gt;</description>
 </segment>
 <segment>
 <pinref part="U6" gate="G$1" pin="SDA"/>
-<wire x1="129.54" y1="27.94" x2="132.08" y2="27.94" width="0.1524" layer="91"/>
-<label x="132.08" y="27.94" size="1.27" layer="95" xref="yes"/>
+<wire x1="144.78" y1="27.94" x2="147.32" y2="27.94" width="0.1524" layer="91"/>
+<label x="147.32" y="27.94" size="1.27" layer="95" xref="yes"/>
 </segment>
 <segment>
 <pinref part="J1" gate="G$1" pin="8"/>
@@ -6783,33 +6787,13 @@ LILYPAD- DIO-09910&lt;br&gt;</description>
 </segment>
 <segment>
 <pinref part="U6" gate="G$1" pin="SCL"/>
-<wire x1="129.54" y1="30.48" x2="132.08" y2="30.48" width="0.1524" layer="91"/>
-<label x="132.08" y="30.48" size="1.27" layer="95" xref="yes"/>
+<wire x1="144.78" y1="30.48" x2="147.32" y2="30.48" width="0.1524" layer="91"/>
+<label x="147.32" y="30.48" size="1.27" layer="95" xref="yes"/>
 </segment>
 <segment>
 <pinref part="J1" gate="G$1" pin="9"/>
 <wire x1="22.86" y1="162.56" x2="25.4" y2="162.56" width="0.1524" layer="91"/>
 <label x="25.4" y="162.56" size="1.27" layer="95" xref="yes"/>
-</segment>
-</net>
-<net name="MMA_INT" class="0">
-<segment>
-<pinref part="U1" gate="A" pin="PIO0_16"/>
-<wire x1="142.24" y1="129.54" x2="139.7" y2="129.54" width="0.1524" layer="91"/>
-<label x="139.7" y="129.54" size="1.27" layer="95" rot="R180" xref="yes"/>
-</segment>
-<segment>
-<wire x1="22.86" y1="165.1" x2="25.4" y2="165.1" width="0.1524" layer="91"/>
-<label x="25.4" y="165.1" size="1.27" layer="95" xref="yes"/>
-<pinref part="J1" gate="G$1" pin="10"/>
-</segment>
-<segment>
-<pinref part="U4" gate="G$1" pin="INT1"/>
-<wire x1="213.36" y1="71.12" x2="218.44" y2="71.12" width="0.1524" layer="91"/>
-<wire x1="218.44" y1="71.12" x2="218.44" y2="73.66" width="0.1524" layer="91"/>
-<pinref part="R4" gate="G$1" pin="2"/>
-<wire x1="218.44" y1="73.66" x2="223.52" y2="73.66" width="0.1524" layer="91"/>
-<label x="223.52" y="73.66" size="1.27" layer="95" xref="yes"/>
 </segment>
 </net>
 <net name="RFM_SEL" class="0">
@@ -6973,21 +6957,32 @@ LILYPAD- DIO-09910&lt;br&gt;</description>
 <segment>
 <pinref part="SUPPLY8" gate="G$1" pin="3.3V"/>
 <pinref part="U6" gate="G$1" pin="VDD"/>
-<wire x1="99.06" y1="33.02" x2="99.06" y2="30.48" width="0.1524" layer="91"/>
-<wire x1="99.06" y1="30.48" x2="104.14" y2="30.48" width="0.1524" layer="91"/>
+<wire x1="114.3" y1="33.02" x2="114.3" y2="30.48" width="0.1524" layer="91"/>
+<wire x1="114.3" y1="30.48" x2="119.38" y2="30.48" width="0.1524" layer="91"/>
 <pinref part="U6" gate="G$1" pin="VDDIO"/>
-<wire x1="104.14" y1="22.86" x2="99.06" y2="22.86" width="0.1524" layer="91"/>
-<wire x1="99.06" y1="22.86" x2="99.06" y2="30.48" width="0.1524" layer="91"/>
-<junction x="99.06" y="30.48"/>
+<wire x1="119.38" y1="22.86" x2="114.3" y2="22.86" width="0.1524" layer="91"/>
+<wire x1="114.3" y1="22.86" x2="114.3" y2="30.48" width="0.1524" layer="91"/>
+<junction x="114.3" y="30.48"/>
 <pinref part="C9" gate="G$1" pin="1"/>
-<wire x1="99.06" y1="30.48" x2="86.36" y2="30.48" width="0.1524" layer="91"/>
-<wire x1="86.36" y1="30.48" x2="86.36" y2="25.4" width="0.1524" layer="91"/>
+<wire x1="114.3" y1="30.48" x2="101.6" y2="30.48" width="0.1524" layer="91"/>
+<wire x1="101.6" y1="30.48" x2="101.6" y2="25.4" width="0.1524" layer="91"/>
 </segment>
 <segment>
 <pinref part="U7" gate="G$1" pin="Z"/>
 <pinref part="SUPPLY9" gate="G$1" pin="3.3V"/>
 <wire x1="96.52" y1="111.76" x2="99.06" y2="111.76" width="0.1524" layer="91"/>
 <wire x1="99.06" y1="111.76" x2="99.06" y2="114.3" width="0.1524" layer="91"/>
+</segment>
+<segment>
+<wire x1="45.72" y1="30.48" x2="60.96" y2="30.48" width="0.1524" layer="91"/>
+<pinref part="U5" gate="G$1" pin="IR+"/>
+<pinref part="C7" gate="G$1" pin="1"/>
+<pinref part="SUPPLY11" gate="G$1" pin="3.3V"/>
+<wire x1="60.96" y1="30.48" x2="78.74" y2="30.48" width="0.1524" layer="91"/>
+<wire x1="78.74" y1="33.02" x2="78.74" y2="30.48" width="0.1524" layer="91"/>
+<junction x="78.74" y="30.48"/>
+<pinref part="R4" gate="G$1" pin="2"/>
+<junction x="60.96" y="30.48"/>
 </segment>
 </net>
 <net name="QSPY_RXD" class="0">
@@ -7015,19 +7010,12 @@ LILYPAD- DIO-09910&lt;br&gt;</description>
 <wire x1="190.5" y1="76.2" x2="182.88" y2="76.2" width="0.1524" layer="91"/>
 </segment>
 </net>
-<net name="N$1" class="0">
-<segment>
-<pinref part="C7" gate="G$1" pin="1"/>
-<wire x1="45.72" y1="30.48" x2="63.5" y2="30.48" width="0.1524" layer="91"/>
-<pinref part="U5" gate="G$1" pin="IR+"/>
-</segment>
-</net>
 <net name="N$6" class="0">
 <segment>
 <pinref part="C8" gate="G$1" pin="1"/>
 <pinref part="U6" gate="G$1" pin="CAP"/>
-<wire x1="93.98" y1="25.4" x2="93.98" y2="27.94" width="0.1524" layer="91"/>
-<wire x1="93.98" y1="27.94" x2="104.14" y2="27.94" width="0.1524" layer="91"/>
+<wire x1="109.22" y1="25.4" x2="109.22" y2="27.94" width="0.1524" layer="91"/>
+<wire x1="109.22" y1="27.94" x2="119.38" y2="27.94" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$8" class="0">
@@ -7065,15 +7053,36 @@ LILYPAD- DIO-09910&lt;br&gt;</description>
 <pinref part="J2" gate="G$1" pin="5"/>
 </segment>
 </net>
+<net name="VCNL_INT" class="0">
+<segment>
+<pinref part="U1" gate="A" pin="PIO0_16"/>
+<wire x1="142.24" y1="129.54" x2="139.7" y2="129.54" width="0.1524" layer="91"/>
+<label x="139.7" y="129.54" size="1.27" layer="95" rot="R180" xref="yes"/>
+</segment>
+<segment>
+<pinref part="U5" gate="G$1" pin="INT"/>
+<wire x1="45.72" y1="17.78" x2="60.96" y2="17.78" width="0.1524" layer="91"/>
+<label x="63.5" y="17.78" size="1.27" layer="95" xref="yes"/>
+<pinref part="R4" gate="G$1" pin="1"/>
+<wire x1="60.96" y1="17.78" x2="63.5" y2="17.78" width="0.1524" layer="91"/>
+<wire x1="60.96" y1="20.32" x2="60.96" y2="17.78" width="0.1524" layer="91"/>
+<junction x="60.96" y="17.78"/>
+</segment>
+<segment>
+<pinref part="J1" gate="G$1" pin="10"/>
+<wire x1="22.86" y1="165.1" x2="25.4" y2="165.1" width="0.1524" layer="91"/>
+<label x="25.4" y="165.1" size="1.27" layer="95" xref="yes"/>
+</segment>
+</net>
 </nets>
 </sheet>
 </sheets>
 <errors>
 <approved hash="104,1,142.24,121.92,U1,VSS,GND,,,"/>
 <approved hash="104,1,27.94,78.74,U2,VDD,3.3V,,,"/>
-<approved hash="104,1,104.14,30.48,U6,VDD,3.3V,,,"/>
-<approved hash="104,1,104.14,27.94,U6,CAP,N$6,,,"/>
-<approved hash="104,1,104.14,22.86,U6,VDDIO,3.3V,,,"/>
+<approved hash="104,1,119.38,30.48,U6,VDD,3.3V,,,"/>
+<approved hash="104,1,119.38,27.94,U6,CAP,N$6,,,"/>
+<approved hash="104,1,119.38,22.86,U6,VDDIO,3.3V,,,"/>
 <approved hash="104,1,104.14,76.2,U3,VDD,3.3V,,,"/>
 <approved hash="104,1,66.04,121.92,U7,VCC,VDD,,,"/>
 <approved hash="113,1,131.976,90.066,FRAME1,,,,,"/>

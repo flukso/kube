@@ -8610,6 +8610,7 @@ Standard 4-pin 0.1" header. Use with straight break away headers (SKU : PRT-0011
 <text x="165.1" y="30.48" size="1.778" layer="91">Licensed under CERN OHL v1.2</text>
 <text x="165.1" y="27.94" size="1.778" layer="91">http://ohwr.org/cernohl</text>
 <text x="165.1" y="25.4" size="1.778" layer="91">by bart@flukso.net</text>
+<text x="35.56" y="152.4" size="1.27" layer="91">+RFM_SDI</text>
 </plain>
 <instances>
 <instance part="FRAME1" gate="G$1" x="0" y="0"/>
@@ -8887,11 +8888,6 @@ Standard 4-pin 0.1" header. Use with straight break away headers (SKU : PRT-0011
 <label x="25.4" y="152.4" size="1.27" layer="95" xref="yes"/>
 <pinref part="J1" gate="G$1" pin="5"/>
 </segment>
-<segment>
-<pinref part="U4" gate="G$1" pin="INT1"/>
-<wire x1="213.36" y1="50.8" x2="218.44" y2="50.8" width="0.1524" layer="91"/>
-<label x="218.44" y="50.8" size="1.27" layer="95" xref="yes"/>
-</segment>
 </net>
 <net name="SWCLK" class="0">
 <segment>
@@ -8934,8 +8930,8 @@ Standard 4-pin 0.1" header. Use with straight break away headers (SKU : PRT-0011
 </segment>
 <segment>
 <pinref part="U4" gate="G$1" pin="SDA"/>
-<wire x1="213.36" y1="58.42" x2="218.44" y2="58.42" width="0.1524" layer="91"/>
-<label x="218.44" y="58.42" size="1.27" layer="95" xref="yes"/>
+<wire x1="213.36" y1="58.42" x2="215.9" y2="58.42" width="0.1524" layer="91"/>
+<label x="215.9" y="58.42" size="1.27" layer="95" xref="yes"/>
 </segment>
 <segment>
 <wire x1="43.18" y1="15.24" x2="45.72" y2="15.24" width="0.1524" layer="91"/>
@@ -8970,8 +8966,8 @@ Standard 4-pin 0.1" header. Use with straight break away headers (SKU : PRT-0011
 </segment>
 <segment>
 <pinref part="U4" gate="G$1" pin="SCL"/>
-<wire x1="213.36" y1="60.96" x2="218.44" y2="60.96" width="0.1524" layer="91"/>
-<label x="218.44" y="60.96" size="1.27" layer="95" xref="yes"/>
+<wire x1="213.36" y1="60.96" x2="215.9" y2="60.96" width="0.1524" layer="91"/>
+<label x="215.9" y="60.96" size="1.27" layer="95" xref="yes"/>
 </segment>
 <segment>
 <wire x1="43.18" y1="12.7" x2="45.72" y2="12.7" width="0.1524" layer="91"/>
@@ -9062,18 +9058,6 @@ Standard 4-pin 0.1" header. Use with straight break away headers (SKU : PRT-0011
 <wire x1="22.86" y1="111.76" x2="25.4" y2="111.76" width="0.1524" layer="91"/>
 <label x="25.4" y="111.76" size="1.27" layer="95" xref="yes"/>
 <pinref part="J2" gate="G$1" pin="3"/>
-</segment>
-</net>
-<net name="RFM_SDI" class="0">
-<segment>
-<pinref part="U1" gate="A" pin="PIO0_1/ACMP_I2/CLKIN/TDI"/>
-<wire x1="223.52" y1="132.08" x2="226.06" y2="132.08" width="0.1524" layer="91"/>
-<label x="226.06" y="132.08" size="1.27" layer="95" xref="yes"/>
-</segment>
-<segment>
-<wire x1="22.86" y1="109.22" x2="25.4" y2="109.22" width="0.1524" layer="91"/>
-<label x="25.4" y="109.22" size="1.27" layer="95" xref="yes"/>
-<pinref part="J2" gate="G$1" pin="2"/>
 </segment>
 </net>
 <net name="EKMB_INT" class="0">
@@ -9301,6 +9285,11 @@ Standard 4-pin 0.1" header. Use with straight break away headers (SKU : PRT-0011
 <label x="66.04" y="152.4" size="1.27" layer="95" xref="yes"/>
 <pinref part="J3" gate="G$1" pin="5"/>
 </segment>
+<segment>
+<pinref part="U$3" gate="G$1" pin="SDI"/>
+<wire x1="160.02" y1="96.52" x2="157.48" y2="96.52" width="0.1524" layer="91"/>
+<label x="157.48" y="96.52" size="1.27" layer="95" rot="R180" xref="yes"/>
+</segment>
 </net>
 <net name="PIO0_5" class="0">
 <segment>
@@ -9394,11 +9383,6 @@ Standard 4-pin 0.1" header. Use with straight break away headers (SKU : PRT-0011
 <label x="66.04" y="109.22" size="1.27" layer="95" xref="yes"/>
 <pinref part="J4" gate="G$1" pin="2"/>
 </segment>
-<segment>
-<wire x1="160.02" y1="96.52" x2="157.48" y2="96.52" width="0.1524" layer="91"/>
-<label x="157.48" y="96.52" size="1.27" layer="95" rot="R180" xref="yes"/>
-<pinref part="U$3" gate="G$1" pin="SDI"/>
-</segment>
 </net>
 <net name="PIO0_15" class="0">
 <segment>
@@ -9430,6 +9414,7 @@ Standard 4-pin 0.1" header. Use with straight break away headers (SKU : PRT-0011
 <wire x1="172.72" y1="111.76" x2="172.72" y2="109.22" width="0.1524" layer="91"/>
 <pinref part="C11" gate="G$1" pin="1"/>
 <wire x1="172.72" y1="109.22" x2="198.12" y2="109.22" width="0.1524" layer="91"/>
+<junction x="172.72" y="109.22"/>
 </segment>
 <segment>
 <pinref part="J5" gate="G$1" pin="3"/>
@@ -9444,13 +9429,7 @@ Standard 4-pin 0.1" header. Use with straight break away headers (SKU : PRT-0011
 <wire x1="66.04" y1="86.36" x2="81.28" y2="86.36" width="0.1524" layer="91"/>
 <wire x1="81.28" y1="86.36" x2="81.28" y2="88.9" width="0.1524" layer="91"/>
 <pinref part="SUPPLY13" gate="G$1" pin="VCC"/>
-</segment>
-</net>
-<net name="GND2" class="0">
-<segment>
-<pinref part="J4" gate="G$1" pin="6"/>
-<wire x1="63.5" y1="119.38" x2="66.04" y2="119.38" width="0.1524" layer="91"/>
-<label x="66.04" y="119.38" size="1.27" layer="95" xref="yes"/>
+<junction x="66.04" y="86.36"/>
 </segment>
 </net>
 <net name="I2C0_SCL2" class="0">
@@ -9499,20 +9478,61 @@ Standard 4-pin 0.1" header. Use with straight break away headers (SKU : PRT-0011
 <wire x1="198.12" y1="81.28" x2="175.26" y2="81.28" width="0.1524" layer="91"/>
 <pinref part="U$6" gate="G$1" pin="AGND"/>
 </segment>
+<segment>
+<pinref part="J4" gate="G$1" pin="6"/>
+<wire x1="63.5" y1="119.38" x2="66.04" y2="119.38" width="0.1524" layer="91"/>
+<label x="66.04" y="119.38" size="1.27" layer="95" xref="yes"/>
+</segment>
+</net>
+<net name="MMA_INT" class="0">
+<segment>
+<pinref part="U1" gate="A" pin="PIO0_1/ACMP_I2/CLKIN/TDI"/>
+<wire x1="223.52" y1="132.08" x2="226.06" y2="132.08" width="0.1524" layer="91"/>
+<label x="226.06" y="132.08" size="1.27" layer="95" xref="yes"/>
+</segment>
+<segment>
+<pinref part="U4" gate="G$1" pin="INT1"/>
+<wire x1="213.36" y1="50.8" x2="215.9" y2="50.8" width="0.1524" layer="91"/>
+<label x="215.9" y="50.8" size="1.27" layer="95" xref="yes"/>
+</segment>
+<segment>
+<pinref part="J2" gate="G$1" pin="2"/>
+<wire x1="22.86" y1="109.22" x2="25.4" y2="109.22" width="0.1524" layer="91"/>
+<label x="25.4" y="109.22" size="1.27" layer="95" xref="yes"/>
+</segment>
 </net>
 </nets>
 </sheet>
 </sheets>
 <errors>
-<approved hash="104,1,142.24,121.92,U1,VSS,GND,,,"/>
-<approved hash="104,1,27.94,78.74,U2,VDD,3.3V,,,"/>
-<approved hash="104,1,119.38,30.48,U6,VDD,3.3V,,,"/>
-<approved hash="104,1,119.38,27.94,U6,CAP,N$6,,,"/>
-<approved hash="104,1,119.38,22.86,U6,VDDIO,3.3V,,,"/>
-<approved hash="104,1,104.14,76.2,U3,VDD,3.3V,,,"/>
-<approved hash="104,1,66.04,121.92,U7,VCC,VDD,,,"/>
+<approved hash="104,1,157.48,129.54,U1,VSS,GND,,,"/>
+<approved hash="104,1,27.94,58.42,U2,VDD,3.3V,,,"/>
+<approved hash="104,1,116.84,22.86,U6,VDD,3.3V,,,"/>
+<approved hash="104,1,116.84,20.32,U6,CAP,N$6,,,"/>
+<approved hash="104,1,116.84,15.24,U6,VDDIO,3.3V,,,"/>
+<approved hash="104,1,104.14,55.88,U3,VDD,3.3V,,,"/>
+<approved hash="104,1,220.98,99.06,U7,VCC,VDD,,,"/>
+<approved hash="104,1,91.44,86.36,BAT1,-,AGND,,,"/>
+<approved hash="104,1,91.44,96.52,BAT1,+,N$2,,,"/>
+<approved hash="104,1,170.18,81.28,U$3,GND2,AGND,,,"/>
+<approved hash="104,1,175.26,81.28,U$3,GND1,AGND,,,"/>
+<approved hash="106,1,63.5,162.56,I2C0_SCL2,,,,,"/>
+<approved hash="106,1,63.5,160.02,I2C0_SDA2,,,,,"/>
+<approved hash="106,1,63.5,127,PIO0_0,,,,,"/>
+<approved hash="106,1,63.5,109.22,PIO0_1,,,,,"/>
+<approved hash="106,1,63.5,157.48,PIO0_2,,,,,"/>
+<approved hash="106,1,63.5,154.94,PIO0_3,,,,,"/>
+<approved hash="106,1,63.5,124.46,PIO0_6,,,,,"/>
+<approved hash="106,1,63.5,114.3,PIO0_8,,,,,"/>
+<approved hash="106,1,63.5,111.76,PIO0_9,,,,,"/>
+<approved hash="106,1,63.5,147.32,PIO0_12,,,,,"/>
+<approved hash="106,1,63.5,106.68,PIO0_15,,,,,"/>
+<approved hash="106,1,63.5,165.1,PIO0_16,,,,,"/>
 <approved hash="113,1,131.976,90.066,FRAME1,,,,,"/>
-<approved hash="113,1,81.28,119.511,U7,,,,,"/>
+<approved hash="113,1,236.22,96.6512,U7,,,,,"/>
+<approved hash="113,1,93.1587,91.44,BAT1,,,,,"/>
+<approved hash="113,1,60.2827,89.0947,J5,,,,,"/>
+<approved hash="113,1,190.779,90.2674,PAD1,,,,,"/>
 </errors>
 </schematic>
 </drawing>

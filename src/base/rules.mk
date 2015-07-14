@@ -13,6 +13,7 @@ LD = $(CROSS)ld
 OBJCOPY = $(CROSS)objcopy
 SIZE = $(CROSS)size
 LINT = splint
+STYLE = indent
 
 CFLAGS += $(CPU) $(WARN) $(STD) -MMD -I../base -DIRQ_DISABLE \
           -O2 -ffunction-sections -fno-builtin -ggdb
@@ -28,6 +29,7 @@ CCVM := $(shell $(CC) -dumpversion | awk '{print substr($$0,3,1)}')
 LINTFLAGS += -D__GNUC__=$(CCV) -D__GNUC_MINOR__=$(CCVM) -DDEBUG \
              -I../base
 LINTFILE = main
+STYLEFLAGS = -linux -sc -i4 -ts4 -nut #-par
 
 OS := $(shell uname)
 
@@ -70,7 +72,10 @@ isp: firmware.bin
 lint:
 	$(LINT) $(LINTFLAGS) $(LINTFILE)
 
-.PHONY: all clean flash dfu lpcx isp lint
+style:
+	$(STYLE) $(STYLEFLAGS) *.h *.c
+
+.PHONY: all clean flash dfu lpcx isp lint style
   
 %.bin:%.elf
 	@$(OBJCOPY) --strip-unneeded -O ihex firmware.elf firmware.hex

@@ -12,6 +12,7 @@ CXX = $(CROSS)g++
 LD = $(CROSS)ld
 OBJCOPY = $(CROSS)objcopy
 SIZE = $(CROSS)size
+LINT = splint
 
 CFLAGS += $(CPU) $(WARN) $(STD) -MMD -I../base -DIRQ_DISABLE \
           -O2 -ffunction-sections -fno-builtin -ggdb
@@ -21,6 +22,12 @@ CXXFLAGS += -fno-rtti -fno-exceptions
 
 LDFLAGS += --gc-sections -Map=firmware.map --cref --library-path=../base
 LIBGCC = $(shell $(CC) $(CFLAGS) --print-libgcc-file-name)
+
+CCV := $(shell $(CC) -dumpversion | awk '{print substr($$0,1,1)}')
+CCVM := $(shell $(CC) -dumpversion | awk '{print substr($$0,3,1)}')
+LINTFLAGS += -D__GNUC__=$(CCV) -D__GNUC_MINOR__=$(CCVM) -DDEBUG \
+             -I../base
+LINTFILE = main
 
 OS := $(shell uname)
 
@@ -60,7 +67,10 @@ lpcx: firmware.elf
 isp: firmware.bin
 	lpc21isp $(ISPOPTS) -wipe -control -bin firmware.bin $(TTY) 115200 12000
 
-.PHONY: all clean flash dfu lpcx isp
+lint:
+	$(LINT) $(LINTFLAGS) $(LINTFILE)
+
+.PHONY: all clean flash dfu lpcx isp lint
   
 %.bin:%.elf
 	@$(OBJCOPY) --strip-unneeded -O ihex firmware.elf firmware.hex

@@ -44,6 +44,8 @@
 #include "ekmb.h"
 #include "acmp.h"
 
+static struct config_s cfg;
+
 static void switch_init(void)
 {
 #define IOCON 18

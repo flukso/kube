@@ -85,4 +85,3 @@ uint8_t htu21d_sample_humid(uint16_t *sample)
     *sample = HTU21D_SAMPLE_ERR;
     return 1;
 }
-

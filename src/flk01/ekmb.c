@@ -46,9 +46,8 @@ void ekmb_init(void)
     NVIC_SetPriority(PININT0_IRQn, PRIO_HIGH);
     /* wake-up from power-down  */
     LPC_SYSCON->STARTERP0 |= (1 << PINT0);
-     /* clear rising edge */
+    /* clear rising edge */
     LPC_PIN_INT->IST |= (1 << PINT0);
     /* enable rising edge int */
     LPC_PIN_INT->SIENR |= (1 << PINT0);
 }
-

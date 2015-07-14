@@ -30,4 +30,3 @@ ErrorCode_t mma8452_trans_init(void);
 ErrorCode_t mma8452_trans_clear(void);
 
 #endif
-

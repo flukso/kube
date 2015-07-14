@@ -119,7 +119,8 @@ static void wwdt_init(void)
 #define WDT_1SEC 2500UL
     /* watchdog feed should occur between quarter and double the SAMPLE_PERIOD */
     LPC_WWDT->TC = 2 * SAMPLE_PERIOD_S * WDT_1SEC;
-    LPC_WWDT->WINDOW = (LPC_WWDT->TC & 0xFFFFFF) - SAMPLE_PERIOD_S * WDT_1SEC / 4;
+    LPC_WWDT->WINDOW =
+        (LPC_WWDT->TC & 0xFFFFFF) - SAMPLE_PERIOD_S * WDT_1SEC / 4;
 #define WDEN 0
 #define WDRESET 1
 #define WDTOF 2
@@ -138,7 +139,7 @@ static void wwdt_feed(void)
 
 static void pwr_init(void)
 {
-    uint32_t cmd[] = {12, PWR_LOW_CURRENT, 12};
+    uint32_t cmd[] = { 12, PWR_LOW_CURRENT, 12 };
     uint32_t result[1];
     LPC_PWRD_API->set_power(cmd, result);
     printf("[pwr] result[0]: 0x%02X\n", (unsigned int)result[0]);
@@ -177,7 +178,6 @@ void WKT_IRQHandler(void)
         led_blink();
 #endif
     }
-
 #ifdef DEBUG
     static unsigned int mma8452_cnt = 0;
     if (LPC_PMU->GPREG1 != mma8452_cnt) {
@@ -191,7 +191,7 @@ void WKT_IRQHandler(void)
     if (time % SAMPLE_PERIOD_S == 0) {
         pkt_gauge.wwdt_event = 0;
         /* do not feed twice at startup or the second feed
-           will occur outside the wdt window */
+         * will occur outside the wdt window */
         if (time) {
             wwdt_feed();
         } else {
@@ -203,7 +203,7 @@ void WKT_IRQHandler(void)
         pkt_gauge.batt = acmp_sample();
         pkt_gauge.temp_err = htu21d_sample_temp(&pkt_gauge.temp);
 #ifndef DEBUG
-        spin(2); /* needed for proper i2c operation */
+        spin(2);                /* needed for proper i2c operation */
 #endif
         pkt_gauge.humid_err = htu21d_sample_humid(&pkt_gauge.humid);
         /* TODO add light/pressure readings to gauge packet */
@@ -273,7 +273,7 @@ int main(void)
     __disable_irq();
     wkt_init();
     __enable_irq();
- 
+
     while (1) {
         printf("[sys] loop #%d\n", ++i);
 #ifdef DEBUG

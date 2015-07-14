@@ -40,5 +40,4 @@ void led_blink(void)
     LPC_GPIO_PORT->SET0 = 1 << LED_PIN;
     spin(10);
     LPC_GPIO_PORT->CLR0 = 1 << LED_PIN;
-} 
-
+}

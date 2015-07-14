@@ -37,7 +37,7 @@ void SysTick_Handler(void)
 void systick_init(void)
 {
     /* 1000Hz */
-    SysTick_Config(__SYSTEM_CLOCK/1000-1);
+    SysTick_Config(__SYSTEM_CLOCK / 1000 - 1);
     NVIC_SetPriority(SysTick_IRQn, PRIO_SYSTICK);
 }
 
@@ -45,9 +45,8 @@ void spin(uint32_t ms)
 {
     uint32_t start = mtime;
     uint32_t stop = start + ms;
-    if (stop < start) { /* overflow */
+    if (stop < start) {         /* overflow */
         while (mtime > start);
     }
     while (mtime < stop);
 }
-

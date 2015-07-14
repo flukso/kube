@@ -17,4 +17,3 @@ ErrorCode_t mpl3115_whoami(void);
 uint8_t mpl3115_sample_pressure(uint32_t *sample);
 
 #endif
-

@@ -55,17 +55,20 @@ void i2c_init(void)
     NVIC_EnableIRQ(I2C_IRQn);
     NVIC_SetPriority(I2C_IRQn, PRIO_HIGH);
     ErrorCode_t err_code;
-    printf("[i2c] firmware: v%u\n", (unsigned int)LPC_I2CD_API->i2c_get_firmware_version());
-    printf("[i2c] memsize: %uB\n", (unsigned int)LPC_I2CD_API->i2c_get_mem_size());
-    i2c.handle = LPC_I2CD_API->i2c_setup(LPC_I2C_BASE, (uint32_t *)i2c.mem);
-    printf("[i2c] clk: %uHz\n", (unsigned int)I2C_CLOCKRATE);
-    err_code = LPC_I2CD_API->i2c_set_bitrate(i2c.handle, __SYSTEM_CLOCK, I2C_CLOCKRATE);
+    printf("[i2c] firmware: v%u\n",
+           (unsigned int) LPC_I2CD_API->i2c_get_firmware_version());
+    printf("[i2c] memsize: %uB\n",
+           (unsigned int) LPC_I2CD_API->i2c_get_mem_size());
+    i2c.handle = LPC_I2CD_API->i2c_setup(LPC_I2C_BASE, (uint32_t *) i2c.mem);
+    printf("[i2c] clk: %uHz\n", (unsigned int) I2C_CLOCKRATE);
+    err_code = LPC_I2CD_API->i2c_set_bitrate(i2c.handle, __SYSTEM_CLOCK,
+                                             I2C_CLOCKRATE);
     printf("[i2c] set_bitrate err: %x\n", err_code);
 }
 
 static void i2c_callback(uint32_t err_code, uint32_t n)
 {
-    i2c.err_code = err_code; 
+    i2c.err_code = err_code;
     i2c.ready = 1;
 }
 
@@ -192,4 +195,3 @@ ErrorCode_t i2c_write_read(uint8_t addr, uint8_t reg, uint8_t rx_buffer[],
     printf("\n");
     return i2c.err_code;
 }
-

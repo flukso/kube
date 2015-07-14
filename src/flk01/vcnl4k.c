@@ -42,7 +42,8 @@ static ErrorCode_t vcnl4k_sample(uint16_t *sample)
 {
     uint8_t rx_buffer[3];
     ErrorCode_t err_code;
-    err_code = i2c_write(VCNL4K_ADDRESS, VCNL4K_REG_COMMAND, VCNL4K_CMD_START_ALS);
+    err_code =
+        i2c_write(VCNL4K_ADDRESS, VCNL4K_REG_COMMAND, VCNL4K_CMD_START_ALS);
     if (err_code != LPC_OK) {
         return err_code;
     }
@@ -69,4 +70,3 @@ uint8_t vcnl4k_sample_light(uint16_t *sample)
     *sample = VCNL4K_SAMPLE_ERR;
     return 1;
 }
-

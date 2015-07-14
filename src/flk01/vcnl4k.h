@@ -22,4 +22,3 @@ ErrorCode_t vcnl4k_read_pid(void);
 uint8_t vcnl4k_sample_light(uint16_t *sample);
 
 #endif
-

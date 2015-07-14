@@ -55,11 +55,10 @@ uint8_t acmp_sample(void)
 #define ACMP 15
     LPC_SYSCON->PDRUNCFG &= ~(1 << ACMP);
     uint8_t ladder = 0;
-    for (int i=0; i<5; i++) {
+    for (int i = 0; i < 5; i++) {
         ladder += (acmp_compare(ladder + (1 << (4 - i))) << (4 - i));
     }
     LPC_SYSCON->PDRUNCFG |= (1 << ACMP);
     printf("[acmp] ladder: %u\n", ladder);
     return ladder;
 }
-

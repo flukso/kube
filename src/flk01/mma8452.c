@@ -56,7 +56,7 @@ ErrorCode_t mma8452_whoami(void)
 {
     uint8_t rx_buffer[2];
     return i2c_write_read(MMA8452_ADDRESS, MMA8452_REG_WHOAMI, rx_buffer,
-                              sizeof(rx_buffer));
+                          sizeof(rx_buffer));
 }
 
 ErrorCode_t mma8452_trans_init(void)
@@ -93,13 +93,12 @@ ErrorCode_t mma8452_trans_init(void)
         return err_code;
     }
     return i2c_write(MMA8452_ADDRESS, MMA8452_REG_CTRL_REG1,
-                         MMA8452_CMD_LNOISE_ACT_12HZ);
+                     MMA8452_CMD_LNOISE_ACT_12HZ);
 }
 
 ErrorCode_t mma8452_trans_clear(void)
 {
     uint8_t rx_buffer[2];
     return i2c_write_read(MMA8452_ADDRESS, MMA8452_REG_TRANS_SRC, rx_buffer,
-                              sizeof(rx_buffer));
+                          sizeof(rx_buffer));
 }
-

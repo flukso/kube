@@ -12,6 +12,7 @@
 #define HTU21D_CMD_READ_USER 0xE7
 #define HTU21D_CMD_SOFT_RESET 0xFE
 #define HTU21D_SAMPLE_ERR 0xFFFF
+#define HTU21D_MEASUREMENT_TIME_MS 85
 
 ErrorCode_t htu21d_soft_reset(void);
 ErrorCode_t htu21d_read_user(void);

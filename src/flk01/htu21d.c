@@ -51,7 +51,7 @@ static ErrorCode_t htu21d_sample(uint8_t cmd, uint16_t *sample)
     if (err_code != LPC_OK) {
         return err_code;
     }
-    spin(50);
+    spin(HTU21D_MEASUREMENT_TIME_MS);
     err_code = i2c_read(HTU21D_ADDRESS, rx_buffer, sizeof(rx_buffer));
     /* TODO add CRC8 checking */
     *sample = (rx_buffer[1] << 8) | (rx_buffer[2] & 0xFC);

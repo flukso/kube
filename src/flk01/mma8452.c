@@ -39,8 +39,8 @@ void mma8452_init(void)
 {
     /* disable pull-up */
 #define MODE1 4
-    LPC_IOCON->PIO0_16 &= ~(1 << MODE1);
-#define MMA8452_PIN 16
+    LPC_IOCON->PIO0_1 &= ~(1 << MODE1);
+#define MMA8452_PIN 1
     LPC_SYSCON->PINTSEL[1] = MMA8452_PIN;
     NVIC_EnableIRQ(PININT1_IRQn);
     NVIC_SetPriority(PININT1_IRQn, PRIO_HIGH);

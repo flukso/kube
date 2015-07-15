@@ -252,6 +252,7 @@ int main(void)
     led_init();
     acmp_init();
     ekmb_init();
+    vcnl4k_init();
 #ifdef DEBUG
     mma8452_init();
 #endif

@@ -27,6 +27,13 @@
 
 #include "vcnl4k.h"
 
+void vcnl4k_init(void)
+{
+    /* disable pull-up */
+#define MODE1 4
+    LPC_IOCON->PIO0_16 &= ~(1 << MODE1);
+}
+
 ErrorCode_t vcnl4k_read_pid(void)
 {
     uint8_t rx_buffer[2];

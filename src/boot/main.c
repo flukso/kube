@@ -51,13 +51,13 @@ static void configurePins (void) {
   /* SPI0_SCK 7 */
   LPC_IOCON->PIO0_7 &= ~(1 << MODE1);
   LPC_SWM->PINASSIGN3 = 0x07ffffffUL;
-  /* SPI0_MOSI 1 */
-  LPC_IOCON->PIO0_1 &= ~(1 << MODE1);
+  /* SPI0_MOSI 4 */
+  LPC_IOCON->PIO0_4 &= ~(1 << MODE1);
   /* SPI0_MISO 13 (repeater mode) */
   LPC_IOCON->PIO0_13 |= (1 << MODE0);
   /* SPI0_SSEL 14 */
   LPC_IOCON->PIO0_14 &= ~(1 << MODE1);
-  LPC_SWM->PINASSIGN4 = 0xff0e0d01UL;
+  LPC_SWM->PINASSIGN4 = 0xff0e0d04UL;
   /* IRQ 17 */
   LPC_IOCON->PIO0_17 &= ~(1 << MODE1);
   /* EKMB INT */

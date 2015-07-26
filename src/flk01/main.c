@@ -159,8 +159,12 @@ static void clkout_init(void)
 void WKT_IRQHandler(void)
 {
     static uint32_t time = 0;
-    static struct pkt_counter_s pkt_counter = {
+    static struct pkt_ekmb_s pkt_ekmb = {
         .cntr = 0
+    };
+    static struct pkt_mma8452_s pkt_mma8452 = {
+        .cntr = 0,
+        .padding = 0xAA
     };
     static struct pkt_gauge_s pkt_gauge = {
         .padding = 0
@@ -169,24 +173,25 @@ void WKT_IRQHandler(void)
     LPC_WKT->CTRL |= (1 << ALARMFLAG);
     LPC_WKT->COUNT = 10 * MILLIS;
 
-    if (LPC_PMU->GPREG0 != pkt_counter.cntr) {
-        pkt_counter.cntr = LPC_PMU->GPREG0;
-        printf("[ekmb] cntr: %u\n", (unsigned int)pkt_counter.cntr);
-        rf12_sendNow(0, &pkt_counter, sizeof(pkt_counter));
+    if (LPC_PMU->GPREG0 != pkt_ekmb.cntr) {
+        pkt_ekmb.cntr = LPC_PMU->GPREG0;
+        printf("[ekmb] cntr: %u\n", (unsigned int)pkt_ekmb.cntr);
+        rf12_sendNow(0, &pkt_ekmb, sizeof(pkt_ekmb));
         rf12_sendWait(3);
 #ifdef DEBUG
         led_blink();
 #endif
     }
-#ifdef DEBUG
-    static unsigned int mma8452_cnt = 0;
-    if (LPC_PMU->GPREG1 != mma8452_cnt) {
-        mma8452_cnt = LPC_PMU->GPREG1;
+    if (LPC_PMU->GPREG1 != pkt_mma8452.cntr) {
+        pkt_mma8452.cntr = LPC_PMU->GPREG1;
         mma8452_trans_clear();
-        printf("[%s] cntr: %u\n", MMA8452_ID, mma8452_cnt);
-        spin(2);
-    }
+        printf("[%s] cntr: %u\n", MMA8452_ID, (unsigned int)pkt_mma8452.cntr);
+        rf12_sendNow(0, &pkt_mma8452, sizeof(pkt_mma8452));
+        rf12_sendWait(3);
+#ifdef DEBUG
+        led_blink();
 #endif
+    }
 
     if (time % SAMPLE_PERIOD_S == 0) {
         pkt_gauge.wwdt_event = 0;
@@ -253,9 +258,7 @@ int main(void)
     acmp_init();
     ekmb_init();
     vcnl4k_init();
-#ifdef DEBUG
     mma8452_init();
-#endif
     rf12_initialize(cfg.nid, RF12_868MHZ, cfg.grp);
     rf12_sleep();
     __enable_irq();
@@ -264,11 +267,11 @@ int main(void)
     htu21d_soft_reset();
     spin(15);
     htu21d_read_user();
-#ifdef DEBUG
     vcnl4k_read_pid();
     mpl3115_whoami();
     mma8452_whoami();
     mma8452_trans_init();
+#ifdef DEBUG
     spin(2);
 #endif
     __disable_irq();

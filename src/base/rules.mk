@@ -16,9 +16,9 @@ LINT = splint
 STYLE = indent
 
 CFLAGS += $(CPU) $(WARN) $(STD) -MMD -I../base -DIRQ_DISABLE \
-          -O2 -ffunction-sections -fno-builtin -ggdb
+          -Os -ffunction-sections -fno-builtin -ggdb
 CXXFLAGS += $(CPU) $(WARN) -MMD -I../base -DIRQ_DISABLE \
-          -O2 -ffunction-sections -fno-builtin -ggdb
+          -Os -ffunction-sections -fno-builtin -ggdb
 CXXFLAGS += -fno-rtti -fno-exceptions
 
 LDFLAGS += --gc-sections -Map=firmware.map --cref --library-path=../base

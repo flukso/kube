@@ -115,14 +115,13 @@ ErrorCode_t i2c_write(uint8_t addr, uint8_t reg, uint8_t cmd)
         tx_count = 3;
     };
 
-    I2C_PARAM_T param = {
-        .num_bytes_send = tx_count,
-        .num_bytes_rec = 0,
-        .buffer_ptr_send = tx_buffer,
-        .buffer_ptr_rec = NULL,
-        .func_pt = i2c_callback,
-        .stop_flag = 1
-    };
+    I2C_PARAM_T param;
+    param.num_bytes_send = tx_count;
+    param.num_bytes_rec = 0;
+    param.buffer_ptr_send = tx_buffer;
+    param.buffer_ptr_rec = NULL;
+    param.func_pt = i2c_callback;
+    param.stop_flag = 1;
     I2C_RESULT_T result;
 
     i2c.ready = 0;
@@ -143,14 +142,13 @@ ErrorCode_t i2c_read(uint8_t addr, uint8_t rx_buffer[], size_t rx_count)
 {
     rx_buffer[0] = addr << 1 | 0x01;
 
-    I2C_PARAM_T param = {
-        .num_bytes_send = 0,
-        .num_bytes_rec = rx_count,
-        .buffer_ptr_send = NULL,
-        .buffer_ptr_rec = rx_buffer,
-        .func_pt = i2c_callback,
-        .stop_flag = 1
-    };
+    I2C_PARAM_T param;
+    param.num_bytes_send = 0;
+    param.num_bytes_rec = rx_count;
+    param.buffer_ptr_send = NULL;
+    param.buffer_ptr_rec = rx_buffer;
+    param.func_pt = i2c_callback;
+    param.stop_flag = 1;
     I2C_RESULT_T result;
 
     i2c.ready = 0;
@@ -173,14 +171,13 @@ ErrorCode_t i2c_write_read(uint8_t addr, uint8_t reg, uint8_t rx_buffer[],
     tx_buffer[1] = reg;
     rx_buffer[0] = addr << 1 | 0x01;
 
-    I2C_PARAM_T param = {
-        .num_bytes_send = 2,
-        .num_bytes_rec = rx_count,
-        .buffer_ptr_send = tx_buffer,
-        .buffer_ptr_rec = rx_buffer,
-        .func_pt = i2c_callback,
-        .stop_flag = 0
-    };
+    I2C_PARAM_T param;
+    param.num_bytes_send = 2;
+    param.num_bytes_rec = rx_count;
+    param.buffer_ptr_send = tx_buffer;
+    param.buffer_ptr_rec = rx_buffer;
+    param.func_pt = i2c_callback;
+    param.stop_flag = 0;
     I2C_RESULT_T result;
 
     i2c.ready = 0;

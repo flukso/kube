@@ -211,13 +211,8 @@ void WKT_IRQHandler(void)
         spin(2);                /* needed for proper i2c operation */
 #endif
         pkt_gauge.humid_err = htu21d_sample_humid(&pkt_gauge.humid);
-        /* TODO add light/pressure readings to gauge packet */
-#ifdef DEBUG
-        uint16_t sample0 = 0;
-        vcnl4k_sample_light(&sample0);
-        uint32_t sample1 = 0;
-        mpl3115_sample_pressure(&sample1);
-#endif
+        pkt_gauge.light_err = vcnl4k_sample_light(&pkt_gauge.light);
+        pkt_gauge.pressure_err = mpl3115_sample_pressure(&pkt_gauge.pressure);
         rf12_sendNow(0, &pkt_gauge, sizeof(pkt_gauge));
         rf12_sendWait(3);
         if (pkt_gauge.temp_err || pkt_gauge.humid_err) {

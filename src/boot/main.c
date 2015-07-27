@@ -1,4 +1,4 @@
-#define REMOTE_TYPE 0x4B11
+#define REMOTE_TYPE 0x4B12
 #define PAIRING_GROUP 212
 
 #define __VTOR_PRESENT 1

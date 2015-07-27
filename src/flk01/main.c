@@ -26,6 +26,7 @@
 */
 
 #include <stdio.h>
+#include <stdbool.h>
 #include "LPC8xx.h"
 #include "rom_pwr_8xx.h"
 #include "rf69_12.h"
@@ -159,75 +160,27 @@ static void clkout_init(void)
 void WKT_IRQHandler(void)
 {
     static uint32_t time = 0;
-    static struct pkt_ekmb_s pkt_ekmb = {
-        .cntr = 0
-    };
-    static struct pkt_mma8452_s pkt_mma8452 = {
-        .cntr = 0,
-        .padding = 0xAA
-    };
-    static struct pkt_gauge_s pkt_gauge = {
-        .reserved = 0
-    };
-    /* bit-fields are not addressable */
-    uint32_t tmp32;
-    uint16_t tmp16;
-
+    bool wwdt_event = 0;
 #define ALARMFLAG 1
     LPC_WKT->CTRL |= (1 << ALARMFLAG);
     LPC_WKT->COUNT = 10 * MILLIS;
 
-    if (LPC_PMU->GPREG0 != pkt_ekmb.cntr) {
-        pkt_ekmb.cntr = LPC_PMU->GPREG0;
-        printf("[ekmb] cntr: %u\n", (unsigned int)pkt_ekmb.cntr);
-        rf12_sendNow(0, &pkt_ekmb, sizeof(pkt_ekmb));
-        rf12_sendWait(3);
-#ifdef DEBUG
-        led_blink();
-#endif
+    if (time % EVENT_PERIOD_S == 0) {
+        pkt_tx_ekmb();
+        pkt_tx_mma8452();
     }
-    if (LPC_PMU->GPREG1 != pkt_mma8452.cntr) {
-        pkt_mma8452.cntr = LPC_PMU->GPREG1;
-        mma8452_trans_clear();
-        printf("[%s] cntr: %u\n", MMA8452_ID, (unsigned int)pkt_mma8452.cntr);
-        rf12_sendNow(0, &pkt_mma8452, sizeof(pkt_mma8452));
-        rf12_sendWait(3);
-#ifdef DEBUG
-        led_blink();
-#endif
-    }
-
     if (time % SAMPLE_PERIOD_S == 0) {
-        pkt_gauge.wwdt_event = 0;
         /* do not feed twice at startup or the second feed
          * will occur outside the wdt window */
         if (time) {
             wwdt_feed();
         } else {
 #define WDT 2
-            pkt_gauge.wwdt_event = LPC_SYSCON->SYSRSTSTAT >> WDT;
+            wwdt_event = LPC_SYSCON->SYSRSTSTAT >> WDT;
             LPC_SYSCON->SYSRSTSTAT = 0;
         }
-
-        pkt_gauge.batt = acmp_sample();
-        pkt_gauge.temp_err = htu21d_sample_temp(&pkt_gauge.temp);
-#ifndef DEBUG
-        spin(2);                /* needed for proper i2c operation */
-#endif
-        pkt_gauge.humid_err = htu21d_sample_humid(&tmp16);
-        pkt_gauge.humid = tmp16;
-        pkt_gauge.light_err = vcnl4k_sample_light(&pkt_gauge.light);
-        pkt_gauge.pressure_err = mpl3115_sample_pressure(&tmp32);
-        pkt_gauge.pressure = tmp32;
-        pkt_gauge.accel_err = mma8452_whoami();
-        rf12_sendNow(0, &pkt_gauge, sizeof(pkt_gauge));
-        rf12_sendWait(3);
-        if (pkt_gauge.temp_err || pkt_gauge.humid_err) {
-            i2c_bus_clear();
-        }
-        led_blink();
+        pkt_tx_gauge(wwdt_event);
     }
-
     if (time == RESET_PERIOD_S) {
         printf("[sys] resetting...\n");
 #ifdef DEBUG
@@ -235,7 +188,6 @@ void WKT_IRQHandler(void)
 #endif
         NVIC_SystemReset();
     }
-
     time++;
 }
 

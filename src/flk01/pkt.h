@@ -1,3 +1,6 @@
+#ifndef __PKT_H__
+#define __PKT_H__
+
 struct pkt_ekmb_s {
     uint32_t cntr;
 };
@@ -21,3 +24,9 @@ struct __attribute__((__packed__)) pkt_gauge_s {
     uint8_t reserved : 2;
     uint8_t wwdt_event : 1;
 };
+
+void pkt_tx_ekmb(void);
+void pkt_tx_mma8452(void);
+void pkt_tx_gauge(bool wwdt_event);
+
+#endif

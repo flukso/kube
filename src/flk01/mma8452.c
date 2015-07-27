@@ -93,7 +93,7 @@ ErrorCode_t mma8452_trans_init(void)
         return err_code;
     }
     err_code = i2c_write(MMA8452_ADDRESS, MMA8452_REG_CTRL_REG2,
-                         MMA8452_CMD_LNOISE_LPOWER);
+                         MMA8452_CMD_LPOWER);
     if (err_code != LPC_OK) {
         return err_code;
     }

@@ -66,7 +66,7 @@ lpcx: firmware.elf
 	     -flash-load-exec firmware.elf
 			 
 # this works with NXP's LPC812 board, using serial ISP
-isp: firmware.bin
+isp:
 	lpc21isp $(ISPOPTS) -wipe -control -bin firmware.bin $(TTY) 115200 12000
 
 lint:

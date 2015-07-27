@@ -167,8 +167,12 @@ void WKT_IRQHandler(void)
         .padding = 0xAA
     };
     static struct pkt_gauge_s pkt_gauge = {
-        .padding = 0
+        .reserved = 0
     };
+    /* bit-fields are not addressable */
+    uint32_t tmp32;
+    uint16_t tmp16;
+
 #define ALARMFLAG 1
     LPC_WKT->CTRL |= (1 << ALARMFLAG);
     LPC_WKT->COUNT = 10 * MILLIS;
@@ -210,9 +214,11 @@ void WKT_IRQHandler(void)
 #ifndef DEBUG
         spin(2);                /* needed for proper i2c operation */
 #endif
-        pkt_gauge.humid_err = htu21d_sample_humid(&pkt_gauge.humid);
+        pkt_gauge.humid_err = htu21d_sample_humid(&tmp16);
+        pkt_gauge.humid = tmp16;
         pkt_gauge.light_err = vcnl4k_sample_light(&pkt_gauge.light);
-        pkt_gauge.pressure_err = mpl3115_sample_pressure(&pkt_gauge.pressure);
+        pkt_gauge.pressure_err = mpl3115_sample_pressure(&tmp32);
+        pkt_gauge.pressure = tmp32;
         pkt_gauge.accel_err = mma8452_whoami();
         rf12_sendNow(0, &pkt_gauge, sizeof(pkt_gauge));
         rf12_sendWait(3);

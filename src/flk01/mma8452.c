@@ -52,11 +52,16 @@ void mma8452_init(void)
     LPC_PIN_INT->SIENF |= (1 << PINT1);
 }
 
-ErrorCode_t mma8452_whoami(void)
+uint8_t mma8452_whoami(void)
 {
+    ErrorCode_t err_code;
     uint8_t rx_buffer[2];
-    return i2c_write_read(MMA8452_ADDRESS, MMA8452_REG_WHOAMI, rx_buffer,
+    err_code = i2c_write_read(MMA8452_ADDRESS, MMA8452_REG_WHOAMI, rx_buffer,
                           sizeof(rx_buffer));
+    if (err_code == LPC_OK) {
+        return 0;
+    }
+    return 1;
 }
 
 ErrorCode_t mma8452_trans_init(void)

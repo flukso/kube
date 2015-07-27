@@ -25,7 +25,7 @@
 
 void PININT1_IRQHandler(void);
 void mma8452_init(void);
-ErrorCode_t mma8452_whoami(void);
+uint8_t mma8452_whoami(void);
 ErrorCode_t mma8452_trans_init(void);
 ErrorCode_t mma8452_trans_clear(void);
 

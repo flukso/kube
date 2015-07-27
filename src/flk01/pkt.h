@@ -17,6 +17,7 @@ struct pkt_gauge_s {
     uint8_t humid_err : 1;
     uint8_t light_err: 1;
     uint8_t pressure_err: 1;
-    uint8_t padding : 3;
+    uint8_t accel_err: 1;
+    uint8_t padding : 2;
     uint8_t wwdt_event : 1;
 };

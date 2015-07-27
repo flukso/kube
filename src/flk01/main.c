@@ -213,6 +213,7 @@ void WKT_IRQHandler(void)
         pkt_gauge.humid_err = htu21d_sample_humid(&pkt_gauge.humid);
         pkt_gauge.light_err = vcnl4k_sample_light(&pkt_gauge.light);
         pkt_gauge.pressure_err = mpl3115_sample_pressure(&pkt_gauge.pressure);
+        pkt_gauge.accel_err = mma8452_whoami();
         rf12_sendNow(0, &pkt_gauge, sizeof(pkt_gauge));
         rf12_sendWait(3);
         if (pkt_gauge.temp_err || pkt_gauge.humid_err) {

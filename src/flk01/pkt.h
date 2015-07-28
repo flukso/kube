@@ -21,12 +21,13 @@ struct __attribute__((__packed__)) pkt_gauge_s {
     uint8_t light_err: 1;
     uint8_t pressure_err: 1;
     uint8_t accel_err: 1;
-    uint8_t reserved : 2;
-    uint8_t wwdt_event : 1;
+    uint8_t reserved : 1;
+    uint8_t bod_event: 1;
+    uint8_t wwdt_event: 1;
 };
 
 void pkt_tx_ekmb(void);
 void pkt_tx_mma8452(void);
-void pkt_tx_gauge(bool wwdt_event);
+void pkt_tx_gauge(uint8_t wwdt_event);
 
 #endif

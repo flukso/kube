@@ -26,7 +26,6 @@
 */
 
 #include <stdio.h>
-#include <stdbool.h>
 #include "LPC8xx.h"
 #include "rom_pwr_8xx.h"
 #include "rf69_12.h"
@@ -160,7 +159,7 @@ static void clkout_init(void)
 void WKT_IRQHandler(void)
 {
     static uint32_t time = 0;
-    bool wwdt_event = 0;
+    uint8_t wwdt_event = 0;
 #define ALARMFLAG 1
     LPC_WKT->CTRL |= (1 << ALARMFLAG);
     LPC_WKT->COUNT = 10 * MILLIS;

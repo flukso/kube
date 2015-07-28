@@ -25,7 +25,6 @@
 
 */
 
-#include <stdbool.h>
 #include "rf69_12.h"
 
 #include "debug.h"
@@ -75,7 +74,7 @@ void pkt_tx_mma8452(void)
     }
 }
 
-void pkt_tx_gauge(bool wwdt_event)
+void pkt_tx_gauge(uint8_t wwdt_event)
 {
     static struct pkt_gauge_s pkt_gauge = {
         .reserved = 0
@@ -83,9 +82,11 @@ void pkt_tx_gauge(bool wwdt_event)
     /* bit-fields are not addressable */
     uint32_t tmp32;
     uint16_t tmp16;
+    uint8_t tmp8;
 
     pkt_gauge.wwdt_event = wwdt_event;
-    pkt_gauge.batt = acmp_sample();
+    pkt_gauge.bod_event = acmp_sample(&tmp8);
+    pkt_gauge.batt = tmp8;
     pkt_gauge.temp_err = htu21d_sample_temp(&pkt_gauge.temp);
 #ifndef DEBUG
     spin(2);                /* needed for proper i2c operation */

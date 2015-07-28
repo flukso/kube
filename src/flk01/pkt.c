@@ -75,9 +75,7 @@ void pkt_tx_mma8452(void)
 
 void pkt_tx_gauge(uint8_t wwdt_event)
 {
-    static struct pkt_gauge_s pkt_gauge = {
-        .reserved = 0
-    };
+    static struct pkt_gauge_s pkt_gauge;
     /* bit-fields are not addressable */
     uint32_t tmp32;
     uint16_t tmp16;
@@ -85,8 +83,10 @@ void pkt_tx_gauge(uint8_t wwdt_event)
 
     pkt_gauge.wwdt_event = wwdt_event;
     pkt_gauge.bod_event = acmp_sample(&tmp8);
-    pkt_gauge.batt = tmp8;
-    pkt_gauge.temp_err = htu21d_sample_temp(&pkt_gauge.temp);
+    pkt_gauge.batt_lo = tmp8;
+    pkt_gauge.batt_hi = tmp8 >> 2;
+    pkt_gauge.temp_err = htu21d_sample_temp(&tmp16);
+    pkt_gauge.temp = tmp16;
 #ifndef DEBUG
     spin(2);                /* needed for proper i2c operation */
 #endif

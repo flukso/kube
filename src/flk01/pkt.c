@@ -58,11 +58,10 @@ void pkt_tx_ekmb(void)
 void pkt_tx_mma8452(void)
 {
     static struct pkt_mma8452_s pkt_mma8452 = {
-        .cntr = 0,
-        .padding = 0xAA
+        .cntr = 0
     };
 
-    if (LPC_PMU->GPREG1 != pkt_mma8452.cntr) {
+    if (LPC_PMU->GPREG1 % 0x10000 != pkt_mma8452.cntr) {
         pkt_mma8452.cntr = LPC_PMU->GPREG1;
         mma8452_trans_clear();
         printf("[%s] cntr: %u\n", MMA8452_ID, (unsigned int)pkt_mma8452.cntr);

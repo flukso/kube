@@ -5,9 +5,8 @@ struct pkt_ekmb_s {
     uint32_t cntr;
 };
 
-struct __attribute__((__packed__)) pkt_mma8452_s {
-    uint32_t cntr;
-    uint8_t padding;
+struct pkt_mma8452_s {
+    uint16_t cntr;
 };
 
 struct __attribute__((__packed__)) pkt_gauge_s {

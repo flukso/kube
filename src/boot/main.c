@@ -25,11 +25,9 @@ static uint32_t millis () {
 }
 
 static void sleep (uint32_t ms) {
-  // TODO: enter low-power sleep mode
   uint32_t now = millis();
   while ((millis() - now) < ms)
     ;
-  // TODO: exit low-power sleep mode
 }
 
 extern uint16_t _crc16_update (uint16_t crc, uint8_t data);

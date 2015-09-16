@@ -40,12 +40,12 @@ flk_h = 23.5;
 flk_t = 0.2;
 flk_w = 30.5 + 2*flk_t;
 
-wall_w = 1;
+wall_w = 1.5;
 outer_w = flk_w + 2*wall_w;
 
 support_h = outer_w - wall_w - flk_h;
 support_r = magnet_r;
-support_w = 1;
+support_w = 1.5;
 support_g = 3;
 
 ring_h = support_h - magnet_h;
@@ -53,7 +53,12 @@ ring_t = 0.2;
 ring_inner_r = support_r + ring_t;
 ring_outer_r = ring_inner_r + 2;
 
-hole_r = 1.2;
+snap_w = 0.4;
+snap_t = 0.4;
+snap_h = support_h - magnet_h - snap_w - snap_t;
+snap_r = support_r + snap_w;
+
+hole_r = 1.5;
 
 echo("*** kube dimensions ***");
 echo("scaling vector", "=", kube_s);
@@ -79,23 +84,16 @@ module kube()
 
 	translate([outer_w/2, outer_w/2, wall_w]) {
 		rotate(a=[0, 0, 45]) difference() {
-			cylinder(r=support_r, h=support_h);
+			union() {
+				cylinder(r=support_r, h=support_h);
+				translate([0, 0, support_h - snap_h]) cylinder(r1=snap_r, r2=support_r, h=snap_h);
+				translate([0, 0, support_h - snap_h - snap_w]) cylinder(r1=support_r, r2=snap_r, h=snap_w);
+			}
 			cylinder(r=support_r - support_w, h=support_h);
-			translate([-support_r, -support_g/2, 0]) cube([support_r*2, support_g, support_h]);
-			translate([-support_g/2, -support_r, 0]) cube([support_g, support_r*2, support_h]);
+			translate([-snap_r, -support_g/2, 0]) cube([snap_r*2, support_g, support_h]);
+			translate([-support_g/2, -snap_r, 0]) cube([support_g, snap_r*2, support_h]);
 		}
 	}
 }
 
-module ring()
-{
-	difference() {
-		cylinder(r=ring_outer_r, h=ring_h);
-		cylinder(r=ring_inner_r, h=ring_h);
-	}
-}
-
-scale(kube_s) {
-	kube();
-	translate([1.5*outer_w, outer_w/2, 0]) ring();
-}
+scale(kube_s) kube();

@@ -44,6 +44,8 @@
 #include "ekmb.h"
 #include "acmp.h"
 
+static struct config_s cfg;
+
 static void switch_init(void)
 {
 #define IOCON 18
@@ -68,13 +70,13 @@ static void switch_init(void)
     /* SPI0_SCK 7 */
     LPC_IOCON->PIO0_7 &= ~(1 << MODE1);
     LPC_SWM->PINASSIGN3 = 0x07FFFFFFUL;
-    /* SPI0_MOSI 1 */
-    LPC_IOCON->PIO0_1 &= ~(1 << MODE1);
+    /* SPI0_MOSI 4 */
+    LPC_IOCON->PIO0_4 &= ~(1 << MODE1);
     /* SPI0_MISO 13 (repeater mode) */
     LPC_IOCON->PIO0_13 |= (1 << MODE0);
     /* SPI0_SSEL 14 */
     LPC_IOCON->PIO0_14 &= ~(1 << MODE1);
-    LPC_SWM->PINASSIGN4 = 0xFF0E0D01UL;
+    LPC_SWM->PINASSIGN4 = 0xFF0E0D04UL;
     /* IRQ 17 */
     LPC_IOCON->PIO0_17 &= ~(1 << MODE1);
 }
@@ -117,7 +119,8 @@ static void wwdt_init(void)
 #define WDT_1SEC 2500UL
     /* watchdog feed should occur between quarter and double the SAMPLE_PERIOD */
     LPC_WWDT->TC = 2 * SAMPLE_PERIOD_S * WDT_1SEC;
-    LPC_WWDT->WINDOW = (LPC_WWDT->TC & 0xFFFFFF) - SAMPLE_PERIOD_S * WDT_1SEC / 4;
+    LPC_WWDT->WINDOW =
+        (LPC_WWDT->TC & 0xFFFFFF) - SAMPLE_PERIOD_S * WDT_1SEC / 4;
 #define WDEN 0
 #define WDRESET 1
 #define WDTOF 2
@@ -136,7 +139,7 @@ static void wwdt_feed(void)
 
 static void pwr_init(void)
 {
-    uint32_t cmd[] = {12, PWR_LOW_CURRENT, 12};
+    uint32_t cmd[] = { 12, PWR_LOW_CURRENT, 12 };
     uint32_t result[1];
     LPC_PWRD_API->set_power(cmd, result);
     printf("[pwr] result[0]: 0x%02X\n", (unsigned int)result[0]);
@@ -156,69 +159,27 @@ static void clkout_init(void)
 void WKT_IRQHandler(void)
 {
     static uint32_t time = 0;
-    static struct pkt_counter_s pkt_counter = {
-        .cntr = 0
-    };
-    static struct pkt_gauge_s pkt_gauge = {
-        .padding = 0
-    };
+    uint8_t wwdt_event = 0;
 #define ALARMFLAG 1
     LPC_WKT->CTRL |= (1 << ALARMFLAG);
     LPC_WKT->COUNT = 10 * MILLIS;
 
-    if (LPC_PMU->GPREG0 != pkt_counter.cntr) {
-        pkt_counter.cntr = LPC_PMU->GPREG0;
-        printf("[ekmb] cntr: %u\n", (unsigned int)pkt_counter.cntr);
-        rf12_sendNow(0, &pkt_counter, sizeof(pkt_counter));
-        rf12_sendWait(3);
-#ifdef DEBUG
-        led_blink();
-#endif
+    if (time % EVENT_PERIOD_S == 0) {
+        pkt_tx_ekmb();
+        pkt_tx_mma8452();
     }
-
-#ifdef DEBUG
-    static unsigned int mma8452_cnt = 0;
-    if (LPC_PMU->GPREG1 != mma8452_cnt) {
-        mma8452_cnt = LPC_PMU->GPREG1;
-        mma8452_trans_clear();
-        printf("[%s] cntr: %u\n", MMA8452_ID, mma8452_cnt);
-        spin(2);
-    }
-#endif
-
     if (time % SAMPLE_PERIOD_S == 0) {
-        pkt_gauge.wwdt_event = 0;
         /* do not feed twice at startup or the second feed
-           will occur outside the wdt window */
+         * will occur outside the wdt window */
         if (time) {
             wwdt_feed();
         } else {
 #define WDT 2
-            pkt_gauge.wwdt_event = LPC_SYSCON->SYSRSTSTAT >> WDT;
+            wwdt_event = LPC_SYSCON->SYSRSTSTAT >> WDT;
             LPC_SYSCON->SYSRSTSTAT = 0;
         }
-
-        pkt_gauge.batt = acmp_sample();
-        pkt_gauge.temp_err = htu21d_sample_temp(&pkt_gauge.temp);
-#ifndef DEBUG
-        spin(2); /* needed for proper i2c operation */
-#endif
-        pkt_gauge.humid_err = htu21d_sample_humid(&pkt_gauge.humid);
-        /* TODO add light/pressure readings to gauge packet */
-#ifdef DEBUG
-        uint16_t sample0 = 0;
-        vcnl4k_sample_light(&sample0);
-        uint32_t sample1 = 0;
-        mpl3115_sample_pressure(&sample1);
-#endif
-        rf12_sendNow(0, &pkt_gauge, sizeof(pkt_gauge));
-        rf12_sendWait(3);
-        if (pkt_gauge.temp_err || pkt_gauge.humid_err) {
-            i2c_bus_clear();
-        }
-        led_blink();
+        pkt_tx_gauge(wwdt_event);
     }
-
     if (time == RESET_PERIOD_S) {
         printf("[sys] resetting...\n");
 #ifdef DEBUG
@@ -226,7 +187,6 @@ void WKT_IRQHandler(void)
 #endif
         NVIC_SystemReset();
     }
-
     time++;
 }
 
@@ -250,9 +210,8 @@ int main(void)
     led_init();
     acmp_init();
     ekmb_init();
-#ifdef DEBUG
+    vcnl4k_init();
     mma8452_init();
-#endif
     rf12_initialize(cfg.nid, RF12_868MHZ, cfg.grp);
     rf12_sleep();
     __enable_irq();
@@ -261,17 +220,17 @@ int main(void)
     htu21d_soft_reset();
     spin(15);
     htu21d_read_user();
-#ifdef DEBUG
     vcnl4k_read_pid();
     mpl3115_whoami();
     mma8452_whoami();
     mma8452_trans_init();
+#ifdef DEBUG
     spin(2);
 #endif
     __disable_irq();
     wkt_init();
     __enable_irq();
- 
+
     while (1) {
         printf("[sys] loop #%d\n", ++i);
 #ifdef DEBUG

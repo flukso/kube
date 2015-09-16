@@ -31,7 +31,7 @@ ErrorCode_t mpl3115_whoami(void)
 {
     uint8_t rx_buffer[2];
     return i2c_write_read(MPL3115_ADDRESS, MPL3115_REG_WHOAMI, rx_buffer,
-                              sizeof(rx_buffer));
+                          sizeof(rx_buffer));
 }
 
 static ErrorCode_t mpl3115_sample(uint32_t *sample)
@@ -63,4 +63,3 @@ uint8_t mpl3115_sample_pressure(uint32_t *sample)
     *sample = MPL3115_SAMPLE_ERR;
     return 1;
 }
-

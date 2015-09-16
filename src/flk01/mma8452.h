@@ -21,13 +21,13 @@
 #define MMA8452_CMD_INT_EN_TRANS 0x20
 #define MMA8452_CMD_INT1_TRANS 0x20
 #define MMA8452_CMD_LNOISE_ACT_12HZ 0x6D
+#define MMA8452_CMD_LPOWER 0x1B
 #define MMA8452_CMD_LNOISE_LPOWER 0x09
 
 void PININT1_IRQHandler(void);
 void mma8452_init(void);
-ErrorCode_t mma8452_whoami(void);
+uint8_t mma8452_whoami(void);
 ErrorCode_t mma8452_trans_init(void);
 ErrorCode_t mma8452_trans_clear(void);
 
 #endif
-

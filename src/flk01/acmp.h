@@ -6,7 +6,6 @@
 #include "debug.h"
 
 void acmp_init(void);
-uint8_t acmp_sample(void);
+uint8_t acmp_sample(uint8_t *ladder);
 
 #endif
-

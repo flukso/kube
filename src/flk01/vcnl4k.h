@@ -18,8 +18,8 @@
 
 #define VCNL4K_SAMPLE_ERR 0xFFFF
 
+void vcnl4k_init(void);
 ErrorCode_t vcnl4k_read_pid(void);
 uint8_t vcnl4k_sample_light(uint16_t *sample);
 
 #endif
-

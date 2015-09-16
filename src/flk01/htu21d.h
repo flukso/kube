@@ -20,4 +20,3 @@ uint8_t htu21d_sample_temp(uint16_t *sample);
 uint8_t htu21d_sample_humid(uint16_t *sample);
 
 #endif
-

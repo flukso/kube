@@ -12,15 +12,24 @@ CXX = $(CROSS)g++
 LD = $(CROSS)ld
 OBJCOPY = $(CROSS)objcopy
 SIZE = $(CROSS)size
+LINT = splint
+STYLE = indent
 
 CFLAGS += $(CPU) $(WARN) $(STD) -MMD -I../base -DIRQ_DISABLE \
-          -O2 -ffunction-sections -fno-builtin -ggdb
+          -Os -ffunction-sections -fno-builtin -ggdb
 CXXFLAGS += $(CPU) $(WARN) -MMD -I../base -DIRQ_DISABLE \
-          -O2 -ffunction-sections -fno-builtin -ggdb
+          -Os -ffunction-sections -fno-builtin -ggdb
 CXXFLAGS += -fno-rtti -fno-exceptions
 
 LDFLAGS += --gc-sections -Map=firmware.map --cref --library-path=../base
 LIBGCC = $(shell $(CC) $(CFLAGS) --print-libgcc-file-name)
+
+CCV := $(shell $(CC) -dumpversion | awk '{print substr($$0,1,1)}')
+CCVM := $(shell $(CC) -dumpversion | awk '{print substr($$0,3,1)}')
+LINTFLAGS += -D__GNUC__=$(CCV) -D__GNUC_MINOR__=$(CCVM) -DDEBUG \
+             -I../base
+LINTFILE = main
+STYLEFLAGS = -linux -sc -i4 -ts4 -nut #-par
 
 OS := $(shell uname)
 
@@ -57,10 +66,16 @@ lpcx: firmware.elf
 	     -flash-load-exec firmware.elf
 			 
 # this works with NXP's LPC812 board, using serial ISP
-isp: firmware.bin
+isp:
 	lpc21isp $(ISPOPTS) -wipe -control -bin firmware.bin $(TTY) 115200 12000
 
-.PHONY: all clean flash dfu lpcx isp
+lint:
+	$(LINT) $(LINTFLAGS) $(LINTFILE)
+
+style:
+	$(STYLE) $(STYLEFLAGS) *.h *.c
+
+.PHONY: all clean flash dfu lpcx isp lint style
   
 %.bin:%.elf
 	@$(OBJCOPY) --strip-unneeded -O ihex firmware.elf firmware.hex

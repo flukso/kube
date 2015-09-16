@@ -147,6 +147,7 @@ static void sendPairingCheck () {
 
 static void exponentialBackOff () {
   printf("wait %d\n", 1000 << backOffCounter);
+  rf12_sleep();
   sleep(1000L << backOffCounter);
   if (backOffCounter < 16)
     ++backOffCounter;

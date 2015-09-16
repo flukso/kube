@@ -50,16 +50,16 @@ static uint8_t acmp_compare(uint8_t ladder)
     return (LPC_CMP->CTRL >> COMPSTAT) & 0x1;
 }
 
-uint8_t acmp_sample(void)
+uint8_t acmp_sample(uint8_t *ladder)
 {
 #define ACMP 15
     LPC_SYSCON->PDRUNCFG &= ~(1 << ACMP);
-    uint8_t ladder = 0;
-    for (int i=0; i<5; i++) {
-        ladder += (acmp_compare(ladder + (1 << (4 - i))) << (4 - i));
+    *ladder = 0;
+    for (int i = 0; i < 5; i++) {
+        *ladder += (acmp_compare(*ladder + (1 << (4 - i))) << (4 - i));
     }
     LPC_SYSCON->PDRUNCFG |= (1 << ACMP);
-    printf("[acmp] ladder: %u\n", ladder);
-    return ladder;
+    printf("[acmp] ladder: %u\n", *ladder);
+    /* BOD level at 2.15V */
+    return *ladder > 12 ? 1 : 0;
 }
-

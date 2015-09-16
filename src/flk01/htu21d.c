@@ -63,8 +63,9 @@ uint8_t htu21d_sample_temp(uint16_t *sample)
     double temp;
     ErrorCode_t err_code;
     err_code = htu21d_sample(HTU21D_CMD_TEMP_NO_HOLD, sample);
+    *sample >>= 2; /* 14 bit resolution */
     if (err_code == LPC_OK) {
-        temp = -46.85 + 175.72 * ((double) *sample / 65536);
+        temp = -46.85 + 175.72 * ((double) *sample / 16384);
         printf("[temp] %dmC\n", (int)(1000 * temp));
         return 0;
     }
@@ -77,12 +78,12 @@ uint8_t htu21d_sample_humid(uint16_t *sample)
     double humid;
     ErrorCode_t err_code;
     err_code = htu21d_sample(HTU21D_CMD_HUMID_NO_HOLD, sample);
+    *sample >>= 4; /* 12 bit resolution */
     if (err_code == LPC_OK) {
-        humid = -6 + 125 * ((double) *sample / 65536);
+        humid = -6 + 125 * ((double) *sample / 4096);
         printf("[humid] %dpm\n", (int)(10 * humid));
         return 0;
     }
     *sample = HTU21D_SAMPLE_ERR;
     return 1;
 }
-

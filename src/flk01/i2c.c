@@ -55,17 +55,20 @@ void i2c_init(void)
     NVIC_EnableIRQ(I2C_IRQn);
     NVIC_SetPriority(I2C_IRQn, PRIO_HIGH);
     ErrorCode_t err_code;
-    printf("[i2c] firmware: v%u\n", (unsigned int)LPC_I2CD_API->i2c_get_firmware_version());
-    printf("[i2c] memsize: %uB\n", (unsigned int)LPC_I2CD_API->i2c_get_mem_size());
-    i2c.handle = LPC_I2CD_API->i2c_setup(LPC_I2C_BASE, (uint32_t *)i2c.mem);
-    printf("[i2c] clk: %uHz\n", (unsigned int)I2C_CLOCKRATE);
-    err_code = LPC_I2CD_API->i2c_set_bitrate(i2c.handle, __SYSTEM_CLOCK, I2C_CLOCKRATE);
+    printf("[i2c] firmware: v%u\n",
+           (unsigned int) LPC_I2CD_API->i2c_get_firmware_version());
+    printf("[i2c] memsize: %uB\n",
+           (unsigned int) LPC_I2CD_API->i2c_get_mem_size());
+    i2c.handle = LPC_I2CD_API->i2c_setup(LPC_I2C_BASE, (uint32_t *) i2c.mem);
+    printf("[i2c] clk: %uHz\n", (unsigned int) I2C_CLOCKRATE);
+    err_code = LPC_I2CD_API->i2c_set_bitrate(i2c.handle, __SYSTEM_CLOCK,
+                                             I2C_CLOCKRATE);
     printf("[i2c] set_bitrate err: %x\n", err_code);
 }
 
 static void i2c_callback(uint32_t err_code, uint32_t n)
 {
-    i2c.err_code = err_code; 
+    i2c.err_code = err_code;
     i2c.ready = 1;
 }
 
@@ -112,14 +115,13 @@ ErrorCode_t i2c_write(uint8_t addr, uint8_t reg, uint8_t cmd)
         tx_count = 3;
     };
 
-    I2C_PARAM_T param = {
-        .num_bytes_send = tx_count,
-        .num_bytes_rec = 0,
-        .buffer_ptr_send = tx_buffer,
-        .buffer_ptr_rec = NULL,
-        .func_pt = i2c_callback,
-        .stop_flag = 1
-    };
+    I2C_PARAM_T param;
+    param.num_bytes_send = tx_count;
+    param.num_bytes_rec = 0;
+    param.buffer_ptr_send = tx_buffer;
+    param.buffer_ptr_rec = NULL;
+    param.func_pt = i2c_callback;
+    param.stop_flag = 1;
     I2C_RESULT_T result;
 
     i2c.ready = 0;
@@ -140,14 +142,13 @@ ErrorCode_t i2c_read(uint8_t addr, uint8_t rx_buffer[], size_t rx_count)
 {
     rx_buffer[0] = addr << 1 | 0x01;
 
-    I2C_PARAM_T param = {
-        .num_bytes_send = 0,
-        .num_bytes_rec = rx_count,
-        .buffer_ptr_send = NULL,
-        .buffer_ptr_rec = rx_buffer,
-        .func_pt = i2c_callback,
-        .stop_flag = 1
-    };
+    I2C_PARAM_T param;
+    param.num_bytes_send = 0;
+    param.num_bytes_rec = rx_count;
+    param.buffer_ptr_send = NULL;
+    param.buffer_ptr_rec = rx_buffer;
+    param.func_pt = i2c_callback;
+    param.stop_flag = 1;
     I2C_RESULT_T result;
 
     i2c.ready = 0;
@@ -170,14 +171,13 @@ ErrorCode_t i2c_write_read(uint8_t addr, uint8_t reg, uint8_t rx_buffer[],
     tx_buffer[1] = reg;
     rx_buffer[0] = addr << 1 | 0x01;
 
-    I2C_PARAM_T param = {
-        .num_bytes_send = 2,
-        .num_bytes_rec = rx_count,
-        .buffer_ptr_send = tx_buffer,
-        .buffer_ptr_rec = rx_buffer,
-        .func_pt = i2c_callback,
-        .stop_flag = 0
-    };
+    I2C_PARAM_T param;
+    param.num_bytes_send = 2;
+    param.num_bytes_rec = rx_count;
+    param.buffer_ptr_send = tx_buffer;
+    param.buffer_ptr_rec = rx_buffer;
+    param.func_pt = i2c_callback;
+    param.stop_flag = 0;
     I2C_RESULT_T result;
 
     i2c.ready = 0;
@@ -192,4 +192,3 @@ ErrorCode_t i2c_write_read(uint8_t addr, uint8_t reg, uint8_t rx_buffer[],
     printf("\n");
     return i2c.err_code;
 }
-

@@ -9,6 +9,7 @@ struct pkt_mma8452_s {
     uint16_t cntr;
 };
 
+/* [4| humidity:u12 pressure:u20] light:u2 [3| error:u7 battery:u3 temperature:u14] */
 struct __attribute__((__packed__)) pkt_gauge_s {
     uint32_t pressure: 20;
     uint32_t humid: 12;

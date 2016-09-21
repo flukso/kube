@@ -151,7 +151,7 @@ uint8_t rf12_recvDone(void) {
 }
 
 uint8_t rf12_canSend(void) {
-  if (rxstate == TXRECV && rxfill == 0) {
+  if (1 || (rxstate == TXRECV && rxfill == 0)) {
     rxstate = TXIDLE;
     setMode(RF_OPMODE_STANDBY);
     return 1;
